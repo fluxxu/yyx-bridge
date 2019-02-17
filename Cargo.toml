@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "./bridge",
+  "./bridge-derive",
+  "./bridge-tests",
+  "./bridge-loader",
+]
