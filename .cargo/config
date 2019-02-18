@@ -1,2 +1,6 @@
 [target.i686-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static", "-Zunstable-options", "-Clink-arg=/MAP"]
+rustflags = [
+  "-Ctarget-feature=+crt-static", 
+  "-Zunstable-options", 
+  "-Clink-arg=/MAP"
+]

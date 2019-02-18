@@ -1,5 +1,4 @@
 #include <Windows.h>
-#include <cstdio>
 BOOL RemoteLoadLibrary(HANDLE hProcess, LPCSTR lpLibPath)
 {
   HANDLE hThread;
@@ -32,34 +31,59 @@ BOOL RemoteLoadLibrary(HANDLE hProcess, LPCSTR lpLibPath)
   return FALSE;
 }
 
-extern "C" void inject(HWND win, const char *dll_path)
+enum class InjectResult
 {
-  printf("Find window: %X\n", (unsigned int)win);
+  Ok = 0,
+  GetPid = 1,
+  OpenProcess = 2,
+  DuplicateHandle = 3,
+  RemoteLoadLibrary = 4
+};
+
+extern "C" InjectResult inject_and_wait(HWND win, const char *dll_path)
+{
+  // printf("Find window: %X\n", (unsigned int)win);
   DWORD pid;
   GetWindowThreadProcessId(win, &pid);
   if (pid)
   {
-    printf("Find PID: %X\n", pid);
+    // printf("Find PID: %X\n", pid);
     HANDLE process = OpenProcess(1, FALSE, pid);
     HANDLE currentProcess = GetCurrentProcess();
     if (process)
     {
-      printf("Process opened (1): 0x%X\n", (unsigned int)process);
+      // printf("Process opened (1): 0x%X\n", (unsigned int)process);
       HANDLE newProcess;
       if (DuplicateHandle(currentProcess, process, currentProcess, &newProcess, PROCESS_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
       {
-        printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
-        printf("Injecting...");
-        RemoteLoadLibrary(newProcess, dll_path);
-        printf("Injected.\n");
-        WaitForSingleObject(newProcess, INFINITE);
-        printf("Process ended.\n");
-        CloseHandle(newProcess);
+        // printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
+        // printf("Injecting...");
+        if (RemoteLoadLibrary(newProcess, dll_path))
+        {
+          // printf("Injected.\n");
+          WaitForSingleObject(newProcess, INFINITE);
+          CloseHandle(newProcess);
+          // printf("Process ended.\n");
+          return InjectResult::Ok;
+        }
+        else
+        {
+          CloseHandle(newProcess);
+          return InjectResult::RemoteLoadLibrary;
+        }
       }
       else
       {
-        printf("Error: %X\n", GetLastError());
+        return InjectResult::DuplicateHandle;
       }
     }
+    else
+    {
+      return InjectResult::OpenProcess;
+    }
+  }
+  else
+  {
+    return InjectResult::GetPid;
   }
 }
