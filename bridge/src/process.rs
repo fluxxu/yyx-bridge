@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::{ptr, slice};
+use std::{ptr};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -9,11 +9,11 @@ pub struct Section {
   pub size: usize,
 }
 
-impl Section {
-  pub unsafe fn as_slice(&self) -> &[u8] {
-    slice::from_raw_parts(self.base, self.size)
-  }
-}
+// impl Section {
+//   pub unsafe fn as_slice(&self) -> &[u8] {
+//     slice::from_raw_parts(self.base, self.size)
+//   }
+// }
 
 extern "C" {
   fn get_version(dst: *mut c_char) -> bool;
@@ -35,6 +35,7 @@ pub fn get_code_section() -> Option<Section> {
   }
 }
 
+#[inline(always)]
 pub fn get_version_string() -> String {
   let mut buf: [i8; 64] = [0; 64];
   unsafe {

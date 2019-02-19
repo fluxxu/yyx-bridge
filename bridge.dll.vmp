@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Document Version="2">
+    <Protection InputFileName="target\release\deps\bridge.dll" Options="857032" LicenseDataFileName="target\release\deps\bridge.dll.vmp">
+        <Messages />
+        <Folders />
+        <Procedures>
+            <Procedure MapAddress="bridge::inject::inject_dll_to_yys::hc2c354b41e85bce7" Options="0" />
+            <Procedure MapAddress="_DllMain@12" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::pull::run_client::heff6ed528870d8ec" Options="0" />
+            <Procedure MapAddress="bridge::pull::run_server::hb75ceaa774df315e" Options="0" />
+        </Procedures>
+        <Objects />
+    </Protection>
+    <DLLBox>
+        <Folders />
+    </DLLBox>
+    <Script />
+</Document>

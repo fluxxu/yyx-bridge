@@ -1,11 +1,18 @@
+use bridge_derive::{secret_string, secret_string_from_file};
+use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
 use serde::Serialize;
 use std::ffi::CString;
 use std::os::raw::c_char;
-use std::path::Path;
 use std::ptr;
 use std::thread;
-use crossbeam_channel::{bounded, Sender, Receiver, TryRecvError};
-use winapi::shared::ntdef::HANDLE;
+
+use crate::api;
+
+macro_rules! pipe_name {
+  () => {
+    secret_string!(r#"\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b"#)
+  };
+}
 
 pub struct PullResult {
   pub is_ok: bool,
@@ -33,19 +40,102 @@ impl PullResult {
   }
 }
 
+pub fn get_error_json(msg: String) -> String {
+  use serde_json::{self, json};
+  serde_json::to_string(&json!({
+    "error": msg,
+  })).unwrap()
+}
+
 pub fn run_client() {
-  use crate::process;
-  let version = process::get_version_string();
-  debug!("version = {}", version);
-  ::std::thread::sleep_ms(3000);
+  let result = api::init().and_then(|_| {
+    api::run(&secret_string_from_file!("bridge/assets/client.py"))
+  });
+
+  if let Err(err) = result {
+    debug!("client error: {}", err);
+    unsafe {
+      use std::ffi::CString;
+      use winapi::shared::winerror::*;
+      use winapi::um::errhandlingapi::*;
+      use winapi::um::fileapi::*;
+      use winapi::um::handleapi::*;
+      use winapi::um::winbase::*;
+      use winapi::um::winnt::*;
+      
+
+      let pipe_name = pipe_name!();
+      
+      loop {
+        let pipe = CreateFileA(
+          CString::new(&pipe_name as &str).unwrap().as_ptr(),
+          GENERIC_WRITE | GENERIC_READ,
+          0,
+          ptr::null_mut(),
+          OPEN_EXISTING,
+          0,
+          ptr::null_mut(),
+        );
+
+        if pipe == INVALID_HANDLE_VALUE {
+          debug!("open pipe error.");
+          break;
+        }
+
+        if GetLastError() == ERROR_PIPE_BUSY {
+          if WaitNamedPipeA(CString::new(&pipe_name as &str).unwrap().as_ptr(), 2000) == 0 {
+            // wait timeout
+            debug!("wait pipe timeout.");
+            break;
+          } else {
+            continue;
+          }
+        }
+
+        let err_msg = get_error_json(err.to_string());
+        let bytes = err_msg.as_bytes();
+
+        let mut pos = 0;
+
+        loop {
+          let mut written: u32 = 0;
+          let remain_size = bytes.len() - pos;
+
+          let ok = WriteFile( 
+            pipe,
+            ::std::mem::transmute((&bytes[pos..]).as_ptr()), 
+            remain_size as u32,
+            &mut written as *mut u32,
+            ptr::null_mut(),
+          ) == 1;
+
+          if !ok {
+            debug!("write pipe error: {}", GetLastError());
+            break;
+          }
+
+          pos = pos + written as usize;
+          if pos == bytes.len() {
+            break;
+          }
+        }
+
+        CloseHandle(pipe);
+      }
+    }
+  }
+
+  debug!("terminating...");
   unsafe {
-    // ::winapi::um::processthreadsapi::TerminateProcess(::winapi::um::processthreadsapi::GetCurrentProcess(), 0);
+    ::winapi::um::processthreadsapi::TerminateProcess(
+      ::winapi::um::processthreadsapi::GetCurrentProcess(),
+      0,
+    );
   }
 }
 
 pub fn run_server() -> PullResult {
   use crate::{get_env, inject};
-  use bridge_derive::secret_string;
 
   let env = get_env().unwrap();
   let dll_path = env.self_path;
@@ -53,82 +143,80 @@ pub fn run_server() -> PullResult {
   let (cmd_s, cmd_r) = bounded(1);
   let (rep_s, rep_r) = bounded(1);
 
-  let worker = thread::spawn(move || {
-    pipe_server_worker(rep_s, cmd_r)
-  });
+  let worker = thread::spawn(move || pipe_server_worker(rep_s, cmd_r));
 
   match rep_r.recv().unwrap() {
-    PipeMsg::ServerStarted => {},
-    PipeMsg::ServerError(err) => {
-      return PullResult::err(&format!("Worker error: {}", err))
-    },
-    _ => {
-      return PullResult::err(&format!("Unexpected message type."))
-    },
+    PipeMsg::ServerStarted => {}
+    PipeMsg::ServerError(err) => return PullResult::err(&format!("Worker error: {}", err)),
+    _ => return PullResult::err(&format!("Unexpected message type.")),
   };
 
+  debug!("pipe server started, injecting {:?}...", dll_path);
+  let remote_err = if let Err(err) = inject::inject_dll_to_yys(dll_path) {
+    Some(err.to_string())
+  } else {
+    None
+  };
 
-  debug!("pipe server started.");
+  if remote_err.is_some() {
+    debug!("client error: {}", remote_err.clone().unwrap());
+    cmd_s.send(PipeMsg::CmdTerm).unwrap();
+  }
 
-  // debug!("pipe server started, injecting {:?}...", dll_path);
-  // let remote_err = if let Err(err) = inject::inject_dll_to_yys(dll_path) {
-  //   Some(err.to_string())
-  // } else {
-  //   None
-  // };
-
-  // cmd_s.send(PipeMsg::CmdTerm).unwrap();
-
-  // unsafe {
-  //   use winapi::shared::winerror::*;
-  //   use winapi::um::errhandlingapi::*;
-  //   use std::os::windows::io::AsRawHandle;
-  //   loop {
-  //     let r = ::winapi::um::ioapiset::CancelSynchronousIo(worker.as_raw_handle());
-  //     if r == 1 {
-  //       break
-  //     }
-  //     let last_err = GetLastError();
-  //     if r != 1 && last_err == ERROR_NOT_FOUND {
-  //       thread::sleep(::std::time::Duration::from_millis(200));
-  //     } else {
-  //       panic!("Unknown worker error: {}", last_err);
-  //     }
-  //   }
-  // }
+  unsafe {
+    use winapi::shared::winerror::*;
+    use winapi::um::errhandlingapi::*;
+    use std::os::windows::io::AsRawHandle;
+    let mut retry = 0;
+    loop {
+      let r = ::winapi::um::ioapiset::CancelSynchronousIo(worker.as_raw_handle());
+      if r == 1 {
+        break
+      }
+      let last_err = GetLastError();
+      if r != 1 && last_err == ERROR_NOT_FOUND {
+        if retry == 3 {
+          break;
+        }
+        thread::sleep(::std::time::Duration::from_millis(200));
+        debug!("waiting for cancel...");
+        retry = retry + 1;
+      } else {
+        panic!("Unknown worker error: {}", last_err);
+      }
+    }
+  }
 
   match rep_r.recv().unwrap() {
-    PipeMsg::ServerStopped {
-      err,
-      data
-    }=> {
+    PipeMsg::ServerStopped { err, data } => {
       debug!("pipe server stopped.");
       if let Some(err) = err {
-        PullResult::err(&err)
+        if let Some(remote_err) = remote_err {
+          PullResult::err(&remote_err.to_string())
+        } else {
+          PullResult::err(&err)
+        }
       } else {
         match String::from_utf8(data) {
           Ok(data) => PullResult::ok(data),
-          Err(err) => PullResult::err(&format!("Invalid utf-8 bytes."))
+          Err(err) => PullResult::err(&format!("Invalid utf-8 bytes: {}", err)),
         }
       }
-    },
-    _ => PullResult::err(&format!("Unexpected message type."))
+    }
+    _ => PullResult::err(&format!("Unexpected message type.")),
   }
 }
 
 enum PipeMsg {
   ServerStarted,
   ServerError(String),
-  ServerStopped {
-    err: Option<String>,
-    data: Vec<u8>,
-  },
+  ServerStopped { err: Option<String>, data: Vec<u8> },
   CmdTerm,
 }
 
 fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
   use bridge_derive::secret_string;
-  let pipe_path = secret_string!(r#"\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b"#);
+  let pipe_path = pipe_name!();
 
   enum ErrorCode {
     CreatePipe = 1,
@@ -158,28 +246,35 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
     );
 
     if pipe == INVALID_HANDLE_VALUE {
-      s.send(PipeMsg::ServerError(
-        format!("{},{}", ErrorCode::CreatePipe as i32, GetLastError())
-      )).unwrap();
-      return
+      s.send(PipeMsg::ServerError(format!(
+        "{},{}",
+        ErrorCode::CreatePipe as i32,
+        GetLastError()
+      )))
+      .unwrap();
+      return;
     }
 
     s.send(PipeMsg::ServerStarted).unwrap();
 
-
     let connected =
       ConnectNamedPipe(pipe, ptr::null_mut()) == 1 || GetLastError() == ERROR_PIPE_CONNECTED;
 
-    let mut terminated = !connected || match r.try_recv() {
-      Ok(PipeMsg::CmdTerm) => {
-        true
-      },
-      Err(TryRecvError::Empty) => false,
-      Err(TryRecvError::Disconnected) => {
-        true
-      },
-      _ => false,
-    };
+    debug!("connected = {}", connected);
+
+    let mut terminated = !connected
+      || match r.try_recv() {
+        Ok(PipeMsg::CmdTerm) => {
+          debug!("termination request received.");
+          true
+        },
+        Err(TryRecvError::Empty) => false,
+        Err(TryRecvError::Disconnected) => {
+          debug!("channel disconnected.");
+          true
+        },
+        _ => false,
+      };
 
     let mut data = vec![];
     let mut last_err = 0;
@@ -201,8 +296,8 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
               debug!("client disconnected.");
               DisconnectNamedPipe(pipe);
               break;
-            },
-            ERROR_MORE_DATA => {},
+            }
+            ERROR_MORE_DATA => {}
             code => {
               last_err = code;
               terminated = true;
@@ -218,10 +313,16 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
     }
 
     CloseHandle(pipe);
+    debug!("pipe closed.");
     s.send(PipeMsg::ServerStopped {
-      err: if terminated { Some(format!("Terminated: {}", last_err)) } else { None },
-      data
-    }).unwrap();
+      err: if terminated {
+        Some(format!("Terminated: {}", last_err))
+      } else {
+        None
+      },
+      data,
+    })
+    .unwrap();
   }
 }
 

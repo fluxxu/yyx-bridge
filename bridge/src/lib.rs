@@ -2,14 +2,14 @@
 
 #[macro_use]
 extern crate failure_derive;
+
+#[cfg(debug_assertions)]
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate crossbeam_channel;
 
 #[cfg(not(debug_assertions))]
 macro_rules! debug {
-  ($($tt:tt),*) => {
+  ($($expr:expr),*) => {
     ()
   };
 }
@@ -21,15 +21,16 @@ mod result;
 mod utils;
 mod window;
 
+mod api;
 mod pull;
 
 pub use self::pull::PullResult;
 
+use bridge_derive::secret_string;
 use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use winapi::shared::minwindef::HINSTANCE;
-use bridge_derive::secret_string;
 
 #[derive(Debug, Clone)]
 pub struct Env {
@@ -51,7 +52,7 @@ pub extern "stdcall" fn DllMain(
     0 => {
       debug!("bridge module unloaded.");
     }
-    other => debug!("bridge dllmain: {}", other),
+    _ => {}
   }
 }
 
@@ -82,12 +83,6 @@ fn run(hinst_dll: HINSTANCE) {
   use std::fs::File;
   let env = init_env(hinst_dll);
   if is_game_process() {
-    CombinedLogger::init(vec![WriteLogger::new(
-      LevelFilter::Debug,
-      Config::default(),
-      File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
-    )])
-    .ok();
     pull::run_client();
   }
 }
@@ -103,9 +98,9 @@ fn init_env(hinst_dll: HINSTANCE) -> Env {
 fn is_game_process() -> bool {
   let app_path = utils::get_module_path(::std::ptr::null_mut());
   if let Some(name) = app_path.file_name().and_then(|v| v.to_str()) {
-    return name == secret_string!("onmyoji.exe")
+    return name == secret_string!("onmyoji.exe");
   } else {
-    return false
+    return false;
   }
 }
 
