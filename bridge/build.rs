@@ -1,4 +1,5 @@
 extern crate cc;
+use std::{fs, env};
 
 fn main() {
   println!("cargo:rerun-if-changed=src/client.py");
@@ -18,4 +19,8 @@ fn main() {
     .cpp(true)
     .file("src/process.cpp")
     .compile("process");
+
+  let verison_file_path = format!("{}/version.rs", env::var("OUT_DIR").unwrap());
+  let version = env::var("CARGO_PKG_VERSION").unwrap();
+  fs::write(verison_file_path, format!(r#"pub const VERSION: &str = "{}";"#, version)).unwrap();
 }

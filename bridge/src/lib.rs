@@ -20,6 +20,7 @@ mod ptr;
 mod result;
 mod utils;
 mod window;
+mod version;
 
 mod api;
 mod pull;
@@ -30,6 +31,8 @@ use bridge_derive::secret_string;
 use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::ffi::CString;
+use std::os::raw::c_char;
 use winapi::shared::minwindef::HINSTANCE;
 
 #[derive(Debug, Clone)]
@@ -79,9 +82,7 @@ fn run(hinst_dll: HINSTANCE) {
 
 #[cfg(not(debug_assertions))]
 fn run(hinst_dll: HINSTANCE) {
-  use simplelog::*;
-  use std::fs::File;
-  let env = init_env(hinst_dll);
+  init_env(hinst_dll);
   if is_game_process() {
     pull::run_client();
   }
@@ -117,4 +118,14 @@ pub unsafe extern "C" fn pull_run() -> pull::PullResult {
 #[no_mangle]
 pub unsafe extern "C" fn pull_free(result: pull::PullResult) {
   pull::free_result(result)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn version_get() -> *mut c_char {
+  CString::new(version::VERSIONw3cdefr).unwrap().into_raw()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn version_free(v: *mut c_char) {
+  CString::from_raw(v);
 }

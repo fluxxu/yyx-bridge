@@ -43,7 +43,10 @@ fn main() {
       lib.get(b"pull_free").unwrap();
     let res = pull_run();
     if res.is_ok {
-      println!("data: {:?}", res.get_data_json())
+      use serde_json;
+      use std::fs::write;
+      let value: serde_json::Value = serde_json::from_str(&res.get_data_json().unwrap()).unwrap();
+      write("data.json", serde_json::to_string_pretty(&value).unwrap()).unwrap();
     } else {
       println!("error: {:?}", res.get_error_message())
     }

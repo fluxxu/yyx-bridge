@@ -1,6 +1,7 @@
 use bridge_derive::{secret_string, secret_string_from_file};
 use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
 use serde::Serialize;
+use serde_json::{self, json, Value};
 use std::ffi::CString;
 use std::os::raw::c_char;
 use std::ptr;
@@ -44,13 +45,13 @@ pub fn get_error_json(msg: String) -> String {
   use serde_json::{self, json};
   serde_json::to_string(&json!({
     "error": msg,
-  })).unwrap()
+  }))
+  .unwrap()
 }
 
 pub fn run_client() {
-  let result = api::init().and_then(|_| {
-    api::run(&secret_string_from_file!("bridge/assets/client.py"))
-  });
+  let result =
+    api::init().and_then(|_| api::run(&secret_string_from_file!("bridge/assets/client.py")));
 
   if let Err(err) = result {
     debug!("client error: {}", err);
@@ -62,10 +63,9 @@ pub fn run_client() {
       use winapi::um::handleapi::*;
       use winapi::um::winbase::*;
       use winapi::um::winnt::*;
-      
 
       let pipe_name = pipe_name!();
-      
+
       loop {
         let pipe = CreateFileA(
           CString::new(&pipe_name as &str).unwrap().as_ptr(),
@@ -101,9 +101,9 @@ pub fn run_client() {
           let mut written: u32 = 0;
           let remain_size = bytes.len() - pos;
 
-          let ok = WriteFile( 
+          let ok = WriteFile(
             pipe,
-            ::std::mem::transmute((&bytes[pos..]).as_ptr()), 
+            ::std::mem::transmute((&bytes[pos..]).as_ptr()),
             remain_size as u32,
             &mut written as *mut u32,
             ptr::null_mut(),
@@ -164,14 +164,14 @@ pub fn run_server() -> PullResult {
   }
 
   unsafe {
+    use std::os::windows::io::AsRawHandle;
     use winapi::shared::winerror::*;
     use winapi::um::errhandlingapi::*;
-    use std::os::windows::io::AsRawHandle;
     let mut retry = 0;
     loop {
       let r = ::winapi::um::ioapiset::CancelSynchronousIo(worker.as_raw_handle());
       if r == 1 {
-        break
+        break;
       }
       let last_err = GetLastError();
       if r != 1 && last_err == ERROR_NOT_FOUND {
@@ -197,7 +197,7 @@ pub fn run_server() -> PullResult {
           PullResult::err(&err)
         }
       } else {
-        match String::from_utf8(data) {
+        match deserialize_data(&data) {
           Ok(data) => PullResult::ok(data),
           Err(err) => PullResult::err(&format!("Invalid utf-8 bytes: {}", err)),
         }
@@ -205,6 +205,10 @@ pub fn run_server() -> PullResult {
     }
     _ => PullResult::err(&format!("Unexpected message type.")),
   }
+}
+
+fn deserialize_data(bytes: &[u8]) -> Result<Value, serde_json::Error> {
+  serde_json::from_reader(bytes)
 }
 
 enum PipeMsg {
@@ -267,12 +271,12 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
         Ok(PipeMsg::CmdTerm) => {
           debug!("termination request received.");
           true
-        },
+        }
         Err(TryRecvError::Empty) => false,
         Err(TryRecvError::Disconnected) => {
           debug!("channel disconnected.");
           true
-        },
+        }
         _ => false,
       };
 
