@@ -4,10 +4,11 @@
         <Messages />
         <Folders />
         <Procedures>
-            <Procedure MapAddress="bridge::inject::inject_dll_to_yys::hc2c354b41e85bce7" Options="0" />
             <Procedure MapAddress="_DllMain@12" Options="0" CompilationType="1" />
             <Procedure MapAddress="bridge::pull::run_client::heff6ed528870d8ec" Options="0" />
-            <Procedure MapAddress="bridge::pull::run_server::hb75ceaa774df315e" Options="0" />
+            <Procedure MapAddress="bridge::pull::run_client_script::h111ca17992c7a078" Options="0" />
+            <Procedure MapAddress="bridge::inject::inject_dll_to_yys::h348681079eac3572" Options="0" />
+            <Procedure MapAddress="bridge::pull::run_server::hba952282279da614" Options="0" />
         </Procedures>
         <Objects />
     </Protection>

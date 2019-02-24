@@ -1,6 +1,6 @@
 use crate::result::*;
 use std::ffi::c_void;
-use std::os::raw::c_char;
+use std::os::windows::ffi::OsStrExt;
 use std::path::Path;
 
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub enum InjectError {
 }
 
 extern "C" {
-  fn inject_and_wait(win: *const c_void, dll_path: *const c_char) -> i32;
+  fn inject_and_wait(win: *const c_void, dll_path: *const u16) -> i32;
 }
 
 pub fn inject_dll_to_yys<P: AsRef<Path>>(path: P) -> BridgeResult<()> {
@@ -18,7 +18,6 @@ pub fn inject_dll_to_yys<P: AsRef<Path>>(path: P) -> BridgeResult<()> {
   use std::ffi::CString;
   let class = CString::new(YYS_WINDOW_CLASS).unwrap();
   let title = CString::new(YYS_WINDOW_TITLE).unwrap();
-  let dll_path = CString::new(path.as_ref().to_str().unwrap()).unwrap();
   let hwnd = unsafe { find_window_by_class_and_title(class.as_ptr(), title.as_ptr()) };
   if hwnd.is_null() {
     return Err(BridgeError::Inject(InjectError::YYSWindowNotFound));
@@ -26,7 +25,14 @@ pub fn inject_dll_to_yys<P: AsRef<Path>>(path: P) -> BridgeResult<()> {
 
   debug!("window found: {:?}", hwnd);
 
-  let res = unsafe { inject_and_wait(hwnd, dll_path.as_ptr()) };
+  let path_wstr: Vec<u16> = path
+    .as_ref()
+    .as_os_str()
+    .encode_wide()
+    .chain(::std::iter::once(0))
+    .collect();
+
+  let res = unsafe { inject_and_wait(hwnd, path_wstr.as_ptr()) };
   if res == 0 {
     Ok(())
   } else {

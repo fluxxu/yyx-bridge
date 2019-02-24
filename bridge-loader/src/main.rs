@@ -1,3 +1,4 @@
+use std::io::{self, Read};
 use std::os::raw::c_char;
 use std::ptr;
 
@@ -59,5 +60,11 @@ fn main() {
       }
     }
     pull_free(res);
+
+    for byte in io::stdin().lock().bytes() {
+      if byte.unwrap() == b'q' {
+        break;
+      }
+    }
   }
 }
