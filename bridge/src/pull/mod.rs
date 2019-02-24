@@ -1,4 +1,3 @@
-use bridge_derive::{secret_string, secret_string_from_file};
 use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
 use serde::Serialize;
 use serde_json::{self, json, Value};
@@ -7,7 +6,11 @@ use std::os::raw::c_char;
 use std::ptr;
 use std::thread;
 
+use bridge_derive::{secret_string, secret_string_from_file};
+use bridge_types::Snapshot;
+
 use crate::api;
+use crate::result::*;
 
 macro_rules! pipe_name {
   () => {
@@ -39,6 +42,14 @@ impl PullResult {
       data_json: ptr::null_mut(),
     }
   }
+
+  pub fn err_with_data(message: &str, raw: Vec<u8>) -> Self {
+    PullResult {
+      is_ok: false,
+      error_message: CString::new(message).unwrap().into_raw(),
+      data_json: CString::new(raw).unwrap().into_raw(),
+    }
+  }
 }
 
 pub fn get_error_json(msg: String) -> String {
@@ -49,9 +60,12 @@ pub fn get_error_json(msg: String) -> String {
   .unwrap()
 }
 
+fn run_client_script() -> BridgeResult<i32> {
+  api::run(&secret_string_from_file!("bridge/assets/client.py"))
+}
+
 pub fn run_client() {
-  let result =
-    api::init().and_then(|_| api::run(&secret_string_from_file!("bridge/assets/client.py")));
+  let result = api::init().and_then(|_| run_client_script());
 
   if let Err(err) = result {
     debug!("client error: {}", err);
@@ -199,7 +213,7 @@ pub fn run_server() -> PullResult {
       } else {
         match deserialize_data(&data) {
           Ok(data) => PullResult::ok(data),
-          Err(err) => PullResult::err(&format!("Invalid utf-8 bytes: {}", err)),
+          Err(err) => PullResult::err_with_data(&err.to_string(), data),
         }
       }
     }
@@ -207,8 +221,23 @@ pub fn run_server() -> PullResult {
   }
 }
 
-fn deserialize_data(bytes: &[u8]) -> Result<Value, serde_json::Error> {
-  serde_json::from_reader(bytes)
+fn deserialize_data(bytes: &[u8]) -> Result<Snapshot, BridgeError> {
+  use bridge_value::{ParseClientValue, ParseClientValueError};
+  let value: Value = serde_json::from_reader(bytes)
+    .map_err(|err| BridgeError::ParseSnapshotData(err.to_string()))?;
+  if let Some(msg) = value
+    .as_object()
+    .and_then(|o| o.get("error").cloned())
+    .and_then(|v| v.as_str().map(|v| v.to_owned()))
+  {
+    return Err(BridgeError::ParseSnapshotData(msg.to_owned()));
+  }
+  Snapshot::parse_client_value(&value).map_err(|err| {
+    BridgeError::ParseSnapshotData(match err {
+      ParseClientValueError::TypeMismatch => format!("Type mismatch."),
+      ParseClientValueError::Message(msg) => msg,
+    })
+  })
 }
 
 enum PipeMsg {

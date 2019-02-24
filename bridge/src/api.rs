@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use bridge_derive::secret_string_from_file;
 use lazy_static::lazy_static;
 use std::ffi::CString;
 use std::mem::transmute;
 use std::os::raw::c_char;
 use std::sync::Mutex;
-use bridge_derive::secret_string_from_file;
 
 use crate::process;
 use crate::result::*;
@@ -63,6 +63,6 @@ pub fn run(code: &str) -> BridgeResult<i32> {
       Ok(rv)
     }
   } else {
-    Err(BridgeError::Internel.into())
+    Err(BridgeError::Internal.into())
   }
 }

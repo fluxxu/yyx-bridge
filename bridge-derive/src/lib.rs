@@ -1,9 +1,10 @@
 #![feature(proc_macro_span)]
+#![recursion_limit = "128"]
 
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, LitStr};
+use syn::{parse_macro_input, DeriveInput, LitStr};
 
 #[proc_macro]
 pub fn secret_string(tokens: TokenStream) -> TokenStream {
@@ -32,7 +33,7 @@ pub fn secret_string(tokens: TokenStream) -> TokenStream {
     quote! {
       "".to_owned()
     }
-  } else if len < 100 {
+  } else {
     quote! {
       {
         let key = [
@@ -48,7 +49,8 @@ pub fn secret_string(tokens: TokenStream) -> TokenStream {
         unsafe { ::std::str::from_utf8_unchecked(&bytes as &[u8]) }.to_owned()
       }
     }
-  } else {
+  };
+  /* else {
     quote! {
       {
         let mut key = Vec::with_capacity(#len);
@@ -67,6 +69,7 @@ pub fn secret_string(tokens: TokenStream) -> TokenStream {
       }
     }
   };
+  */
 
   TokenStream::from(expanded)
 }
@@ -106,7 +109,7 @@ pub fn secret_string_from_file(tokens: TokenStream) -> TokenStream {
     quote! {
       "".to_owned()
     }
-  } else if len < 100 {
+  } else {
     quote! {
       {
         let key = [
@@ -122,7 +125,9 @@ pub fn secret_string_from_file(tokens: TokenStream) -> TokenStream {
         unsafe { ::std::str::from_utf8_unchecked(&bytes as &[u8]) }.to_owned()
       }
     }
-  } else {
+  };
+  /*
+  else {
     quote! {
       {
         let mut key = Vec::with_capacity(#len);
@@ -141,6 +146,99 @@ pub fn secret_string_from_file(tokens: TokenStream) -> TokenStream {
       }
     }
   };
+  */
 
+  TokenStream::from(expanded)
+}
+
+#[proc_macro_derive(ParseClientValue)]
+pub fn derive_parse_client_value(tokens: TokenStream) -> TokenStream {
+  use syn::{Data, Fields};
+  let input = parse_macro_input!(tokens as DeriveInput);
+  let ident = input.ident;
+  let ident_str = ident.to_string();
+
+  let expanded = match input.data {
+    Data::Struct(ref data) => {
+      let inits: Vec<_> = match data.fields {
+        Fields::Named(ref fields) => fields
+          .named
+          .iter()
+          .enumerate()
+          .map(|(i, f)| {
+            let f_ident = &f.ident;
+            let f_len = fields.named.len();
+            quote! {
+              #f_ident: ::bridge_value::ParseClientValue::parse_client_value(
+                vec.get(#i).ok_or_else(|| {
+                  ::bridge_value::ParseClientValueError::Message(
+                    format!("{} has {} fields, but the array length is {}.",
+                      #ident_str, #f_len, vec.len()
+                    )
+                  )
+                })?
+              )?
+            }
+          })
+          .collect(),
+        _ => panic!("Named struct fields expected."),
+      };
+
+      quote! {
+        impl ::bridge_value::ParseClientValue for #ident {
+          fn parse_client_value(value: &::bridge_value::Value) -> Result<Self, ::bridge_value::ParseClientValueError> {
+            if let Some(vec) = value.as_array() {
+              Ok(#ident {
+                #(#inits,)*
+              })
+            } else {
+              Err(::bridge_value::ParseClientValueError::TypeMismatch)
+            }
+          }
+        }
+      }
+    }
+    Data::Enum(ref data) => {
+      let arms: Vec<_> = data
+        .variants
+        .iter()
+        .enumerate()
+        .map(|(i, v)| {
+          let i = i as u64;
+          if v.discriminant.is_some() {
+            panic!("Variant discriminant not supported.");
+          }
+          if let Fields::Unit = v.fields {
+            let v_ident = &v.ident;
+            quote! {
+              #i => Ok(#ident::#v_ident)
+            }
+          } else {
+            panic!("Unit enum variant expected.");
+          }
+        })
+        .collect();
+      let arms_len = arms.len();
+      quote! {
+        impl ::bridge_value::ParseClientValue for #ident {
+          fn parse_client_value(value: &::bridge_value::Value) -> Result<Self, ::bridge_value::ParseClientValueError> {
+            if let Some(v) = value.as_u64() {
+              match v {
+                #(#arms,)*
+                i => Err(::bridge_value::ParseClientValueError::Message(
+                  format!("{} has {} variants, but the value is {}.",
+                    #ident_str, #arms_len, i
+                  )
+                ))
+              }
+            } else {
+              Err(::bridge_value::ParseClientValueError::TypeMismatch)
+            }
+          }
+        }
+      }
+    }
+    _ => panic!("Struct or Enum expected."),
+  };
   TokenStream::from(expanded)
 }

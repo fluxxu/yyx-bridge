@@ -122,7 +122,7 @@ pub unsafe extern "C" fn pull_free(result: pull::PullResult) {
 
 #[no_mangle]
 pub unsafe extern "C" fn version_get() -> *mut c_char {
-  CString::new(version::VERSIONw3cdefr).unwrap().into_raw()
+  CString::new(version::VERSION).unwrap().into_raw()
 }
 
 #[no_mangle]
