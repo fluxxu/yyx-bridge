@@ -81,7 +81,7 @@ try:
             presets.append([preset_names[i], items])
         return presets
 
-    def get_hero_fragments():
+    def get_hero_shards():
         heroTypeList = [
             CONST.HeroType.SS_MONSTER, CONST.HeroType.SS_GHOST, CONST.HeroType.SS_ELF]
 
@@ -89,9 +89,9 @@ try:
             book = data['book']
             return [
                 id,  # hero_id
-                Globals.player1.currency.get(book[1], 0),  # fragment_count
+                Globals.player1.currency.get(book[1], 0),  # shard_count
                 Globals.player1.currency.get(book[0], 0),  # book_count
-                book[2]  # book_fragment_count
+                book[2]  # book_max_shard_count
             ]
         return [map(id, data) for id, data in DATA_HERO.data.items() if data['type'] in heroTypeList]
 
@@ -99,7 +99,7 @@ try:
         [map_hero(id, e) for id, e in Globals.player1.heroes.items()],
         [map_equip(id, e) for id, e in Globals.player1.inventory.items()],
         get_item_presets(),
-        get_hero_fragments(),
+        get_hero_shards(),
         # [
         #     Globals.player1.currency.get(CONST.CurrencyType.COIN),  # COIN
         #     Globals.player1.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
