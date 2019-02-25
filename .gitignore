@@ -2,3 +2,4 @@ target
 *.pyc
 .vscode
 *.log
+dist

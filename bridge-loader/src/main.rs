@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 use std::os::raw::c_char;
 use std::ptr;
+use chrono::{Local};
 
 #[derive(Debug)]
 pub struct PullResult {
@@ -37,34 +38,53 @@ impl PullResult {
 
 fn main() {
   use std::fs::write;
+  use std::ffi::CStr;
+
+  println!("Loading...");
+
   let lib = libloading::Library::new("bridge.dll").unwrap();
   unsafe {
     let pull_run: libloading::Symbol<unsafe extern "C" fn() -> PullResult> =
       lib.get(b"pull_run").unwrap();
     let pull_free: libloading::Symbol<unsafe extern "C" fn(PullResult)> =
       lib.get(b"pull_free").unwrap();
+    let version_get: libloading::Symbol<unsafe extern "C" fn() -> *mut c_char> =
+      lib.get(b"version_get").unwrap();
+    let version_free: libloading::Symbol<unsafe extern "C" fn(*mut c_char)> =
+      lib.get(b"version_free").unwrap();
+
+    let version = version_get();
+    let version_str = CStr::from_ptr(version).to_string_lossy().to_string();
+    version_free(version);
+
+    println!("Bridge version: {}", version_str);
+    println!("Generating snapshot...");
+
     let res = pull_run();
     if res.is_ok {
-      use serde_json;
+      use serde_json::{self, json};
+      let now = Local::now();
+      let ts = Local::now().format("%Y%m%d%H%M%S");
 
       let value: serde_json::Value = serde_json::from_str(&res.get_data_json().unwrap()).unwrap();
       write(
-        "snapshot.json",
-        serde_json::to_string_pretty(&value).unwrap(),
+        format!("yyx_snapshot_{}.json", ts),
+        serde_json::to_string_pretty(&json!({
+          "timestamp": now,
+          "version": version_str,
+          "data": value
+        })).unwrap(),
       )
       .unwrap();
     } else {
-      println!("error: {:?}", res.get_error_message());
+      println!("Error: {}", res.get_error_message().unwrap_or_else(|| "Unknown error.".to_string()));
       if let Some(data) = res.get_data_json() {
-        write("data.json", data).unwrap();
+        write("last_error_data.json", data).unwrap();
       }
-    }
-    pull_free(res);
-
-    for byte in io::stdin().lock().bytes() {
-      if byte.unwrap() == b'q' {
+      for _ in io::stdin().lock().bytes() {
         break;
       }
     }
+    pull_free(res);
   }
 }

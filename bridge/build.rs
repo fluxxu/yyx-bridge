@@ -2,7 +2,7 @@ extern crate cc;
 use std::{fs, env};
 
 fn main() {
-  println!("cargo:rerun-if-changed=src/client.py");
+  println!("cargo:rerun-if-changed=assets/client.py");
   println!("cargo:rustc-link-lib=dylib=user32");
 
   cc::Build::new()

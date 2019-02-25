@@ -5,5 +5,5 @@ members = [
   "./bridge-types",
   "./bridge-derive",
   "./bridge-tests",
-  "./bridge-loader",
+  "./bridge-loader"
 ]
