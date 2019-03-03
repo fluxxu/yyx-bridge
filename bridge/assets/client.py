@@ -6,8 +6,12 @@ import com.const as CONST
 
 f = open(r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b', 'wb+', buffering=0)
 try:
-    if Globals.player1 == None:
+    player = Globals.player1
+    if player == None:
         raise Exception('Player data not available.')
+
+    heroTypeList = [
+        CONST.HeroType.SS_MONSTER, CONST.HeroType.SS_GHOST, CONST.HeroType.SS_ELF]
 
     equip_attr_types = [
         'maxHpAdditionVal', 'defenseAdditionVal', 'attackAdditionVal', 'maxHpAdditionRate',
@@ -57,6 +61,8 @@ try:
         ]
 
     def map_hero(id, hero):
+        attr_calc = hero.getUnAwakeBattleAttr(
+        ) if hero.awake == 0 else hero.getAwakeBattleAttr()
         return [
             id,
             # 'uid': hero.uid,
@@ -64,13 +70,54 @@ try:
             hero._equips,
             hero._level,
             hero.exp,
-            hero._expRate,
             # hero._name,
             hero.nickName,
             hero.born,
             hero.lock,
             hero.rarity,
-            hero.skillList
+            hero.skillList,
+            hero.awake,
+            hero.star,
+            [
+                [
+                    attr_calc.baseMaxHp,
+                    attr_calc.maxHpAdditionVal,
+                    attr_calc.maxHpAdditionRate,
+                    attr_calc.maxHp,
+                ],
+                [
+                    attr_calc.baseSpeed,
+                    attr_calc.speedAdditionVal,
+                    attr_calc.speedAdditionRate,
+                    attr_calc.speed,
+                ],
+                [
+                    attr_calc.baseCritPower,
+                    attr_calc.critPowerAdditionVal,
+                    attr_calc.critPowerAdditionRate,
+                    attr_calc.critPower,
+                ],
+                [
+                    attr_calc.baseCritRate,
+                    attr_calc.critRateAdditionVal,
+                    attr_calc.critRateAdditionRate,
+                    attr_calc.critRate,
+                ],
+                [
+                    attr_calc.baseDefense,
+                    attr_calc.defenseAdditionVal,
+                    attr_calc.defenseAdditionRate,
+                    attr_calc.defense,
+                ],
+                [
+                    attr_calc.baseAttack,
+                    attr_calc.attackAdditionVal,
+                    attr_calc.attackAdditionRate,
+                    attr_calc.attack,
+                ],
+                attr_calc.debuffEnhance,
+                attr_calc.debuffResist
+            ]
         ]
 
     def get_item_presets():
@@ -82,32 +129,29 @@ try:
         return presets
 
     def get_hero_shards():
-        heroTypeList = [
-            CONST.HeroType.SS_MONSTER, CONST.HeroType.SS_GHOST, CONST.HeroType.SS_ELF]
-
         def map(id, data):
             book = data['book']
             return [
                 id,  # hero_id
-                Globals.player1.currency.get(book[1], 0),  # shard_count
-                Globals.player1.currency.get(book[0], 0),  # book_count
+                player.currency.get(book[1], 0),  # shard_count
+                player.currency.get(book[0], 0),  # book_count
                 book[2]  # book_max_shard_count
             ]
         return [map(id, data) for id, data in DATA_HERO.data.items() if data['type'] in heroTypeList]
 
     data = [
-        [map_hero(id, e) for id, e in Globals.player1.heroes.items()],
-        [map_equip(id, e) for id, e in Globals.player1.inventory.items()],
+        [player.short_id, player.name, player.level],
+        [
+            player.currency.get(CONST.CurrencyType.COIN),  # COIN
+            player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
+            player.currency.get(
+                CONST.CurrencyType.STRENGTH),  # STRENGTH
+        ],
+        [map_hero(id, i) for id, i in player.heroes.items()
+         if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
+        [map_equip(id, e) for id, e in player.inventory.items()],
         get_item_presets(),
         get_hero_shards(),
-        # [
-        #     Globals.player1.currency.get(CONST.CurrencyType.COIN),  # COIN
-        #     Globals.player1.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
-        #     Globals.player1.currency.get(
-        #         CONST.CurrencyType.STRENGTH),  # STRENGTH
-        #     Globals.player1.currency.get(CONST.CurrencyType.RONGYU),
-        #     Globals.player1.currency.get(CONST.CurrencyType.PVPJIFEN),
-        # ]
     ]
 
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))

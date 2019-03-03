@@ -67,8 +67,14 @@ fn main() {
       let ts = Local::now().format("%Y%m%d%H%M%S");
 
       let value: serde_json::Value = serde_json::from_str(&res.get_data_json().unwrap()).unwrap();
+      let short_id: i64 = value.as_object().and_then(|obj| {
+        obj.get("player").and_then(|p| {
+          p.as_object()
+          .and_then(|p| p.get("id").and_then(|id| id.as_i64()))
+        })
+      }).unwrap_or(0);
       write(
-        format!("yyx_snapshot_{}.json", ts),
+        format!("yyx_snapshot_{}_{}.json", ts, short_id),
         serde_json::to_string_pretty(&json!({
           "timestamp": now,
           "version": version_str,
