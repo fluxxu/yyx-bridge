@@ -36,6 +36,12 @@ try:
                 random_attrs.append(
                     [equip_attr_type_map[attrname], attrvalue * equip.randAttrRates[attrname]])
 
+        single_attrs = DATA_EQUIP_RANDOM_ATTR.data.get(
+            equip.single_attr, {}).get('attrs') if equip.single_attr else []
+
+        single_attrs = [[equip_attr_type_map[
+            attr[0]], attr[1]] for attr in single_attrs]
+
         return [
             id,
             # 'name': equip.name,
@@ -58,6 +64,7 @@ try:
             random_attrs,
             [[equip_attr_type_map[attrname], rate]
                 for (attrname, rate) in equip.randAttrRates.items()],
+            single_attrs
         ]
 
     def map_hero(id, hero):
@@ -139,6 +146,14 @@ try:
             ]
         return [map(id, data) for id, data in DATA_HERO.data.items() if data['type'] in heroTypeList]
 
+    def map_realm_card(id, card):
+        return [
+            id,
+            card.itemid,
+            card.totalTime,
+            card.produceValue,
+        ]
+
     data = [
         [player.short_id, player.name, player.level],
         [
@@ -152,6 +167,8 @@ try:
         [map_equip(id, e) for id, e in player.inventory.items()],
         get_item_presets(),
         get_hero_shards(),
+        [map_realm_card(id, data)
+            for id, data in Globals.player1.myJiejieCardDataDict.items()]
     ]
 
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))

@@ -74,7 +74,7 @@ fn run(hinst_dll: HINSTANCE) {
     pull::run_client();
   } else {
     CombinedLogger::init(vec![
-      TermLogger::new(LevelFilter::Debug, Config::default()).unwrap()
+      TermLogger::new(LevelFilter::max(), Config::default()).unwrap()
     ])
     .ok();
   }

@@ -6,12 +6,14 @@ mod hero_book_shard;
 mod hero_equip;
 mod hero_equip_preset;
 mod player;
+mod realm_card;
 
 pub use self::hero::*;
 pub use self::hero_book_shard::*;
 pub use self::hero_equip::*;
 pub use self::hero_equip_preset::*;
 pub use self::player::*;
+pub use self::realm_card::*;
 
 #[derive(Debug, Serialize, ParseClientValue)]
 pub struct Snapshot {
@@ -21,4 +23,5 @@ pub struct Snapshot {
   pub hero_equips: Vec<HeroEquip>,
   pub hero_equip_presets: Vec<HeroEquipPreset>,
   pub hero_book_shards: Vec<HeroBookShard>,
+  pub realm_cards: Vec<RealmCard>,
 }

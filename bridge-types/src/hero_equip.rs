@@ -31,6 +31,7 @@ pub struct HeroEquip {
   pub base_attr: HeroEquipAttr,
   pub random_attrs: Vec<HeroEquipAttr>,
   pub random_attr_rates: Vec<HeroEquipAttr>,
+  pub single_attrs: Vec<HeroEquipAttr>,
 }
 
 #[derive(Debug, Serialize, ParseClientValue, PartialEq)]

@@ -5,11 +5,12 @@
         <Folders />
         <Procedures>
             <Procedure MapAddress="_DllMain@12" Options="0" CompilationType="1" />
-            <Procedure MapAddress="bridge::pull::run_client::heff6ed528870d8ec" Options="0" />
-            <Procedure MapAddress="bridge::pull::run_client_script::h111ca17992c7a078" Options="0" CompilationType="1" />
-            <Procedure MapAddress="bridge::inject::inject_dll_to_yys::h348681079eac3572" Options="0" />
-            <Procedure MapAddress="bridge::pull::run_server::hba952282279da614" Options="0" />
-            <Procedure MapAddress="bridge::pull::pipe_server_worker::hcfd8ae1d71ce980a" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::inject::inject_dll_to_yys::hb4c64bb2af1f8cbb" Options="0" CompilationType="1" />
+            <Procedure MapAddress="_inject_and_wait" Options="0" />
+            <Procedure MapAddress="bridge::pull::run_client::hf144632396db0d59" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::pull::run_server::h79ed579b85822479" Options="0" />
+            <Procedure MapAddress="bridge::pull::pipe_server_worker::hce129f7c0e061a32" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::pull::run_client_script::h9e7aaeba2d2ef945" Options="0" />
         </Procedures>
         <Objects />
     </Protection>

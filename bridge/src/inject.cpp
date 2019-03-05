@@ -1,5 +1,28 @@
 #include <Windows.h>
-BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
+#include <psapi.h>
+#include <cstdint>
+
+__forceinline HMODULE GetProcessModuleAddress(HANDLE process, const wchar_t *dllname)
+{
+  HMODULE arr[100];
+  wchar_t filename[MAX_PATH];
+  DWORD required;
+  if (TRUE == EnumProcessModules(process, arr, sizeof(arr), &required))
+  {
+    size_t n = required / sizeof(HMODULE);
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (size_t filenameLen = GetModuleFileNameExW(process, arr[i], filename, sizeof(filename) / sizeof(wchar_t)))
+      {
+        if (0 == _wcsicmp(&(filename[filenameLen - wcslen(dllname)]), dllname))
+          return arr[i];
+      }
+    }
+  }
+  return NULL;
+}
+
+__forceinline BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
 {
   HANDLE hThread;
   HMODULE hKernel32; /* = GetModuleHandle ( "Kernel32" ); */
@@ -16,10 +39,30 @@ BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
     /* Get Kernel32 from the memory.  Providing you didn't fuck your system, this should almost always work */
     GetModuleHandleExA(0, "Kernel32", &hKernel32);
 
-    /* Execute LoadLibrary in our process remotely and see if the thread was executed successfuly */
-    if ((hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)(GetProcAddress(hKernel32, "LoadLibraryW")), lpvLibPath, 0, NULL)))
-    {
+    auto remote_base = GetProcessModuleAddress(hProcess, L"Kernel32.dll");
 
+    // printf("remote base = %x", remote_base);
+
+    if (remote_base == NULL)
+    {
+      return FALSE;
+    }
+
+    auto f_addr = GetProcAddress(hKernel32, "LoadLibraryW");
+
+    // printf("LoadLibraryW addr = %x", f_addr);
+
+    auto f_offset = (uint32_t)f_addr - (uint32_t)hKernel32;
+
+    // printf("LoadLibraryW offset = %x", f_offset);
+
+    auto f_remote_addr = (uint32_t)remote_base + f_offset;
+
+    // printf("f_remote_addr = %x", f_remote_addr);
+
+    /* Execute LoadLibrary in our process remotely and see if the thread was executed successfuly */
+    if ((hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)(f_remote_addr), lpvLibPath, 0, NULL)))
+    {
       /* Free the remotely allocated string */
       VirtualFreeEx(hProcess, lpvLibPath, path_size, MEM_RELEASE);
 

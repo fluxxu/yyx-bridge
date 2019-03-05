@@ -165,6 +165,8 @@ pub fn run_server() -> PullResult {
     _ => return PullResult::err(&format!("Unexpected message type.")),
   };
 
+  println!("Connecting...");
+
   debug!("pipe server started, injecting {:?}...", dll_path);
   let remote_err = if let Err(err) = inject::inject_dll_to_yys(dll_path) {
     Some(err.to_string())
@@ -294,6 +296,8 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
       ConnectNamedPipe(pipe, ptr::null_mut()) == 1 || GetLastError() == ERROR_PIPE_CONNECTED;
 
     debug!("connected = {}", connected);
+
+    println!("Reading...");
 
     let mut terminated = !connected
       || match r.try_recv() {

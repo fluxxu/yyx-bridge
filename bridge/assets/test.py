@@ -36,8 +36,13 @@ try:
                 random_attrs.append(
                     [equip_attr_type_map[attrname], attrvalue * equip.randAttrRates[attrname]])
 
+        single_attrs = DATA_EQUIP_RANDOM_ATTR.data.get(
+            equip.single_attr, {}).get('attrs') if equip.single_attr else []
+
+        single_attrs = [[equip_attr_type_map[
+            attr[0]], attr[1]] for attr in single_attrs]
+
         return [
-            equip.single_attr,
             id,
             # 'name': equip.name,
             equip.suitId,
@@ -59,6 +64,7 @@ try:
             random_attrs,
             [[equip_attr_type_map[attrname], rate]
                 for (attrname, rate) in equip.randAttrRates.items()],
+            single_attrs
         ]
 
     def map_hero(id, hero):
@@ -71,7 +77,6 @@ try:
             hero._equips,
             hero._level,
             hero.exp,
-            hero._expRate,
             # hero._name,
             hero.nickName,
             hero.born,
@@ -82,41 +87,52 @@ try:
             hero.star,
             [
                 [
-                attr_calc.baseMaxHp,
-                attr_calc.maxHpAdditionVal,
-                attr_calc.maxHpAdditionRate,
-                attr_calc.maxHp,
+                    attr_calc.baseMaxHp,
+                    attr_calc.maxHpAdditionVal,
+                    attr_calc.maxHpAdditionRate,
+                    attr_calc.maxHp,
                 ],
                 [
-                attr_calc.speed,
-                attr_calc.baseSpeed,
-                attr_calc.speedAdditionVal,
+                    attr_calc.baseSpeed,
+                    attr_calc.speedAdditionVal,
+                    attr_calc.speedAdditionRate,
+                    attr_calc.speed,
                 ],
                 [
-                attr_calc.critPower,
-                attr_calc.baseCritPower,
-                attr_calc.critPowerAdditionVal,
+                    attr_calc.baseCritPower,
+                    attr_calc.critPowerAdditionVal,
+                    attr_calc.critPowerAdditionRate,
+                    attr_calc.critPower,
                 ],
                 [
-                attr_calc.critRate,
-                attr_calc.baseCritRate,
-                attr_calc.critRateAdditionVal,
+                    attr_calc.baseCritRate,
+                    attr_calc.critRateAdditionVal,
+                    attr_calc.critRateAdditionRate,
+                    attr_calc.critRate,
                 ],
                 [
-                attr_calc.defense,
-                attr_calc.baseDefense,
-                attr_calc.defenseAdditionVal,
-                attr_calc.defenseAdditionRate,
+                    attr_calc.baseDefense,
+                    attr_calc.defenseAdditionVal,
+                    attr_calc.defenseAdditionRate,
+                    attr_calc.defense,
                 ],
                 [
-                attr_calc.attack,
-                attr_calc.baseAttack,
-                attr_calc.attackAdditionVal,
-                attr_calc.attackAdditionRate,
+                    attr_calc.baseAttack,
+                    attr_calc.attackAdditionVal,
+                    attr_calc.attackAdditionRate,
+                    attr_calc.attack,
                 ],
                 attr_calc.debuffEnhance,
                 attr_calc.debuffResist
             ]
+        ]
+
+    def map_realm_card(id, card):
+        return [
+            id,
+            card.itemid,
+            card.totalTime,
+            card.produceValue,
         ]
 
     def get_item_presets():
@@ -138,22 +154,8 @@ try:
             ]
         return [map(id, data) for id, data in DATA_HERO.data.items() if data['type'] in heroTypeList]
 
-    data = [
-        # [player.short_id, player.name, player.level],
-        # [
-        #     player.currency.get(CONST.CurrencyType.COIN),  # COIN
-        #     player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
-        #     player.currency.get(
-        #         CONST.CurrencyType.STRENGTH),  # STRENGTH
-        # ],
-        [map_hero(id, i) for id, i in player.heroes.items()
-         if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList
-         and i.heroId == 200
-         ],
-        # [map_equip(id, e) for id, e in player.inventory.items()],
-        # get_item_presets(),
-        # get_hero_shards(),
-    ]
+    data = [map_realm_card(id, data)
+            for id, data in Globals.player1.myJiejieCardDataDict.items()]
 
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
 except Exception as e:
