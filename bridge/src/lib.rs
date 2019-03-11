@@ -19,8 +19,8 @@ mod process;
 mod ptr;
 mod result;
 mod utils;
-mod window;
 mod version;
+mod window;
 
 mod api;
 mod pull;
@@ -29,10 +29,10 @@ pub use self::pull::PullResult;
 
 use bridge_derive::secret_string;
 use lazy_static::lazy_static;
-use std::path::PathBuf;
-use std::sync::Mutex;
 use std::ffi::CString;
 use std::os::raw::c_char;
+use std::path::PathBuf;
+use std::sync::Mutex;
 use winapi::shared::minwindef::HINSTANCE;
 
 #[derive(Debug, Clone)]
@@ -64,19 +64,16 @@ fn run(hinst_dll: HINSTANCE) {
   use simplelog::*;
   use std::fs::File;
   let env = init_env(hinst_dll);
+
+  CombinedLogger::init(vec![WriteLogger::new(
+    LevelFilter::Debug,
+    Config::default(),
+    File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
+  )])
+  .ok();
+
   if is_game_process() {
-    CombinedLogger::init(vec![WriteLogger::new(
-      LevelFilter::Debug,
-      Config::default(),
-      File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
-    )])
-    .ok();
     pull::run_client();
-  } else {
-    CombinedLogger::init(vec![
-      TermLogger::new(LevelFilter::max(), Config::default()).unwrap()
-    ])
-    .ok();
   }
 }
 
@@ -98,8 +95,9 @@ fn init_env(hinst_dll: HINSTANCE) -> Env {
 
 fn is_game_process() -> bool {
   let app_path = utils::get_module_path(::std::ptr::null_mut());
+  debug!("app path = {:?}", app_path);
   if let Some(name) = app_path.file_name().and_then(|v| v.to_str()) {
-    return name == secret_string!("onmyoji.exe");
+    return name == secret_string!("onmyoji.exe") || name == secret_string!("client.exe");
   } else {
     return false;
   }

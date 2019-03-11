@@ -1,6 +1,8 @@
 #include <Windows.h>
 #include <psapi.h>
 #include <cstdint>
+// #include <cstdio>
+#define printf()
 
 __forceinline HMODULE GetProcessModuleAddress(HANDLE process, const wchar_t *dllname)
 {
@@ -41,7 +43,7 @@ __forceinline BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
 
     auto remote_base = GetProcessModuleAddress(hProcess, L"Kernel32.dll");
 
-    // printf("remote base = %x", remote_base);
+    printf("remote base = %x\n", remote_base);
 
     if (remote_base == NULL)
     {
@@ -50,15 +52,15 @@ __forceinline BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
 
     auto f_addr = GetProcAddress(hKernel32, "LoadLibraryW");
 
-    // printf("LoadLibraryW addr = %x", f_addr);
+    printf("LoadLibraryW addr = %x\n", f_addr);
 
     auto f_offset = (uint32_t)f_addr - (uint32_t)hKernel32;
 
-    // printf("LoadLibraryW offset = %x", f_offset);
+    printf("LoadLibraryW offset = %x\n", f_offset);
 
     auto f_remote_addr = (uint32_t)remote_base + f_offset;
 
-    // printf("f_remote_addr = %x", f_remote_addr);
+    printf("f_remote_addr = %x\n", f_remote_addr);
 
     /* Execute LoadLibrary in our process remotely and see if the thread was executed successfuly */
     if ((hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)(f_remote_addr), lpvLibPath, 0, NULL)))
@@ -87,28 +89,28 @@ enum class InjectResult
 
 extern "C" InjectResult inject_and_wait(HWND win, LPWSTR lpLibPath)
 {
-  // printf("Find window: %X\n", (unsigned int)win);
+  printf("Find window: %X\n", (unsigned int)win);
   DWORD pid;
   GetWindowThreadProcessId(win, &pid);
   if (pid)
   {
-    // printf("Find PID: %X\n", pid);
+    printf("Find PID: %X\n", pid);
     HANDLE process = OpenProcess(1, FALSE, pid);
     HANDLE currentProcess = GetCurrentProcess();
     if (process)
     {
-      // printf("Process opened (1): 0x%X\n", (unsigned int)process);
+      printf("Process opened (1): 0x%X\n", (unsigned int)process);
       HANDLE newProcess;
       if (DuplicateHandle(currentProcess, process, currentProcess, &newProcess, PROCESS_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
       {
-        // printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
-        // printf("Injecting...");
+        printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
+        printf("Injecting...");
         if (RemoteLoadLibrary(newProcess, lpLibPath))
         {
-          // printf("Injected.\n");
+          printf("Injected.\n");
           WaitForSingleObject(newProcess, INFINITE);
           CloseHandle(newProcess);
-          // printf("Process ended.\n");
+          printf("Process ended.\n");
           return InjectResult::Ok;
         }
         else
