@@ -3,9 +3,7 @@ mod result;
 mod inject;
 mod process;
 mod ptr;
-mod result;
 mod utils;
-mod version;
 mod window;
 
 mod api;
@@ -13,8 +11,6 @@ mod pull;
 
 use bridge_derive::secret_string;
 use lazy_static::lazy_static;
-use std::ffi::CString;
-use std::os::raw::c_char;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use winapi::shared::minwindef::HINSTANCE;

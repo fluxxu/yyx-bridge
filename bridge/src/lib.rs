@@ -28,7 +28,7 @@ mod windows;
 #[cfg(target_os = "windows")]
 #[no_mangle]
 pub extern "stdcall" fn DllMain(
-  hinst_dll: HINSTANCE,
+  hinst_dll: ::winapi::shared::minwindef::HINSTANCE,
   fdw_reason: u32,
   _: *mut winapi::ctypes::c_void,
 ) {

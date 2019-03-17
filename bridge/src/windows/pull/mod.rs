@@ -1,8 +1,5 @@
 use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
-use serde::Serialize;
-use serde_json::{self, json, Value};
-use std::ffi::CString;
-use std::os::raw::c_char;
+use serde_json::Value;
 use std::ptr;
 use std::thread;
 
@@ -11,7 +8,8 @@ use bridge_types::Snapshot;
 
 use super::api;
 use super::result::*;
-use super::result::PullResult;
+
+use crate::PullResult;
 
 macro_rules! pipe_name {
   () => {
@@ -28,7 +26,7 @@ pub fn get_error_json(msg: String) -> String {
 }
 
 fn run_client_script() -> BridgeResult<i32> {
-  api::run(&secret_string_from_file!("bridge/assets/client.py"))
+  api::run(&secret_string_from_file!("bridge/assets/client_windows.py"))
 }
 
 pub fn run_client() {

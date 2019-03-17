@@ -34,7 +34,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bridge"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "bridge-derive 0.1.0",
  "bridge-types 0.1.0",

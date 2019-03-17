@@ -8,17 +8,17 @@ fn main() {
 
   cc::Build::new()
     .cpp(true)
-    .file("src/window.cpp")
+    .file("src/windows/window.cpp")
     .compile("window");
 
   cc::Build::new()
     .cpp(true)
-    .file("src/inject.cpp")
+    .file("src/windows/inject.cpp")
     .compile("inject");
 
   cc::Build::new()
     .cpp(true)
-    .file("src/process.cpp")
+    .file("src/windows/process.cpp")
     .compile("process");
 
   write_version()
