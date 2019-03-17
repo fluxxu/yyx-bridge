@@ -1,4 +1,4 @@
-use crate::result::*;
+use super::result::*;
 use std::ffi::c_void;
 use std::os::windows::ffi::OsStrExt;
 use std::path::Path;

@@ -14,36 +14,18 @@ macro_rules! debug {
   };
 }
 
-mod inject;
-mod process;
-mod ptr;
-mod result;
-mod utils;
-mod version;
-mod window;
-
-mod api;
-mod pull;
-
-pub use self::pull::PullResult;
-
-use bridge_derive::secret_string;
-use lazy_static::lazy_static;
 use std::ffi::CString;
 use std::os::raw::c_char;
-use std::path::PathBuf;
-use std::sync::Mutex;
-use winapi::shared::minwindef::HINSTANCE;
 
-#[derive(Debug, Clone)]
-pub struct Env {
-  pub self_path: PathBuf,
-}
+mod result;
+mod version;
+pub use self::result::PullResult;
 
-lazy_static! {
-  pub static ref ENV: Mutex<Option<Env>> = { Mutex::new(None) };
-}
+mod emulator;
+#[cfg(target_os = "windows")]
+mod windows;
 
+#[cfg(target_os = "windows")]
 #[no_mangle]
 pub extern "stdcall" fn DllMain(
   hinst_dll: HINSTANCE,
@@ -51,7 +33,7 @@ pub extern "stdcall" fn DllMain(
   _: *mut winapi::ctypes::c_void,
 ) {
   match fdw_reason {
-    1 => run(hinst_dll),
+    1 => windows::run(hinst_dll),
     0 => {
       debug!("bridge module unloaded.");
     }
@@ -59,63 +41,15 @@ pub extern "stdcall" fn DllMain(
   }
 }
 
-#[cfg(debug_assertions)]
-fn run(hinst_dll: HINSTANCE) {
-  use simplelog::*;
-  use std::fs::File;
-  let env = init_env(hinst_dll);
-
-  CombinedLogger::init(vec![WriteLogger::new(
-    LevelFilter::Debug,
-    Config::default(),
-    File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
-  )])
-  .ok();
-
-  if is_game_process() {
-    pull::run_client();
-  }
-}
-
-#[cfg(not(debug_assertions))]
-fn run(hinst_dll: HINSTANCE) {
-  init_env(hinst_dll);
-  if is_game_process() {
-    pull::run_client();
-  }
-}
-
-fn init_env(hinst_dll: HINSTANCE) -> Env {
-  let self_path = utils::get_module_path(hinst_dll);
-  let value = Env { self_path };
-  let mut r = ENV.lock().unwrap();
-  *r = Some(value.clone());
-  value
-}
-
-fn is_game_process() -> bool {
-  let app_path = utils::get_module_path(::std::ptr::null_mut());
-  debug!("app path = {:?}", app_path);
-  if let Some(name) = app_path.file_name().and_then(|v| v.to_str()) {
-    return name == secret_string!("onmyoji.exe") || name == secret_string!("client.exe");
-  } else {
-    return false;
-  }
-}
-
-pub fn get_env() -> Option<Env> {
-  let r = ENV.lock().unwrap();
-  r.clone()
+#[cfg(target_os = "windows")]
+#[no_mangle]
+pub unsafe extern "C" fn pull_run() -> PullResult {
+  windows::run_server()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pull_run() -> pull::PullResult {
-  pull::run_server()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn pull_free(result: pull::PullResult) {
-  pull::free_result(result)
+pub unsafe extern "C" fn pull_free(result: PullResult) {
+  drop(result)
 }
 
 #[no_mangle]

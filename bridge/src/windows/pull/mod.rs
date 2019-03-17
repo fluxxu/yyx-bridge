@@ -9,47 +9,14 @@ use std::thread;
 use bridge_derive::{secret_string, secret_string_from_file};
 use bridge_types::Snapshot;
 
-use crate::api;
-use crate::result::*;
+use super::api;
+use super::result::*;
+use super::result::PullResult;
 
 macro_rules! pipe_name {
   () => {
     secret_string!(r#"\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b"#)
   };
-}
-
-pub struct PullResult {
-  pub is_ok: bool,
-  pub error_message: *mut c_char,
-  pub data_json: *mut c_char,
-}
-
-impl PullResult {
-  pub fn ok<T: Serialize>(data: T) -> Self {
-    use serde_json;
-    let json = serde_json::to_string(&data).unwrap();
-    PullResult {
-      is_ok: true,
-      error_message: ptr::null_mut(),
-      data_json: CString::new(json).unwrap().into_raw(),
-    }
-  }
-
-  pub fn err(message: &str) -> Self {
-    PullResult {
-      is_ok: false,
-      error_message: CString::new(message).unwrap().into_raw(),
-      data_json: ptr::null_mut(),
-    }
-  }
-
-  pub fn err_with_data(message: &str, raw: Vec<u8>) -> Self {
-    PullResult {
-      is_ok: false,
-      error_message: CString::new(message).unwrap().into_raw(),
-      data_json: CString::new(raw).unwrap().into_raw(),
-    }
-  }
 }
 
 pub fn get_error_json(msg: String) -> String {
@@ -149,7 +116,7 @@ pub fn run_client() {
 }
 
 pub fn run_server() -> PullResult {
-  use crate::{get_env, inject};
+  use super::{get_env, inject};
 
   let env = get_env().unwrap();
   let dll_path = env.self_path;
@@ -360,14 +327,5 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
       data,
     })
     .unwrap();
-  }
-}
-
-pub unsafe fn free_result(result: PullResult) {
-  if result.error_message != ptr::null_mut() {
-    CString::from_raw(result.error_message);
-  }
-  if result.data_json != ptr::null_mut() {
-    CString::from_raw(result.data_json);
   }
 }
