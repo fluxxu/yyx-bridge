@@ -45,7 +45,6 @@ impl PullResult {
   }
 }
 
-#[cfg(target_os = "windows")]
 fn main() {
   use std::ffi::CStr;
 
@@ -57,6 +56,7 @@ fn main() {
     pull_free,
     version_get,
     version_free,
+    ..
   } = get_symbols(&lib);
   let version = version_get();
   let version_str = unsafe { CStr::from_ptr(version).to_string_lossy().to_string() };
@@ -70,7 +70,6 @@ fn main() {
   pull_free(res);
 }
 
-#[cfg(target_os = "windows")]
 fn get_symbols<'a>(lib: &'a Library) -> LibInterface<'a> {
   unsafe {
     LibInterface {

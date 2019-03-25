@@ -9,9 +9,7 @@ pub enum BridgeError {
   #[fail(display = "Unsupported client version: {}", _0)]
   VersionNotSupported(String),
   #[fail(display = "Unknown internal error.")]
-  Internal,
-  #[fail(display = "Parse snapshot error: {}", _0)]
-  ParseSnapshotData(String),
+  Internal
 }
 
 pub type BridgeResult<T> = Result<T, BridgeError>;

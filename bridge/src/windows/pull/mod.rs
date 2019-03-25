@@ -1,16 +1,14 @@
 use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
-use serde_json::Value;
 use std::ptr;
 use std::thread;
 
 use bridge_derive::{secret_string, secret_string_from_file};
-use bridge_types::Snapshot;
 
 use super::api;
 use super::result::*;
 
+use crate::deserialize::{deserialize_data, DeserializeError};
 use crate::PullResult;
-use crate::deserialize::deserialize_data;
 
 macro_rules! pipe_name {
   () => {
@@ -181,7 +179,7 @@ pub fn run_server() -> PullResult {
       } else {
         match deserialize_data(&data) {
           Ok(data) => PullResult::ok(data),
-          Err(err) => PullResult::err_with_data(&err.to_string(), data),
+          Err(DeserializeError::ParseSnapshotData(msg)) => PullResult::err_with_data(&msg, data),
         }
       }
     }
