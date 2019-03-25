@@ -15,6 +15,10 @@ path = "src/bin.rs"
 winres = "0.1.8"
 libloading = "0.5.0"
 
+
+[target.'cfg(target_os = "macos")'.build-dependencies]
+cc = "1.0"
+
 [target.'cfg(target_os = "macos")'.dependencies]
 bridge = { path = "../bridge" }
 

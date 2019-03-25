@@ -10,6 +10,13 @@ use adb_rs::AdbClient;
 use std::io;
 
 pub fn run() -> PullResult {
+  #[cfg(debug_assertions)]
+  {
+    use simplelog::*;
+
+    CombinedLogger::init(vec![]).ok();
+  }
+
   match run_impl() {
     Ok(data) => PullResult::ok(data),
     Err(err) => {

@@ -24,7 +24,7 @@ fn main() {
   write_version()
 }
 
-#[cfg(not(target_os = "windows"))]
+#[cfg(target_os = "macos")]
 fn main() {
   write_version()
 }

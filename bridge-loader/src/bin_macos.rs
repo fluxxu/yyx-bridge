@@ -2,6 +2,8 @@ use bridge::PullResult;
 use chrono::Local;
 use std::io::prelude::*;
 
+mod macos;
+
 fn main() {
   use bridge::*;
   use std::ffi::CStr;
@@ -24,6 +26,9 @@ fn handle_result(version_str: &str, res: &PullResult) {
   use std::fs::write;
   use std::io::stdin;
 
+  let self_dir = macos::get_self_dir();
+  println!("Output dir: {:?}", self_dir);
+
   if res.is_ok {
     use serde_json::{self, json};
     let now = Local::now();
@@ -41,7 +46,7 @@ fn handle_result(version_str: &str, res: &PullResult) {
       .unwrap_or(0);
     let path = format!("yyx_snapshot_{}_{}.json", ts, short_id);
     write(
-      &path,
+      self_dir.join(&path),
       serde_json::to_string_pretty(&json!({
         "timestamp": now,
         "version": version_str,
@@ -59,7 +64,7 @@ fn handle_result(version_str: &str, res: &PullResult) {
         .unwrap_or_else(|| "Unknown error.".to_string())
     );
     if let Some(data) = res.get_data_json() {
-      write("last_error_data.json", data).unwrap();
+      write(self_dir.join("last_error_data.json"), data).unwrap();
     }
     for _ in stdin().lock().bytes() {
       break;

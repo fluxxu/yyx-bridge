@@ -3,6 +3,8 @@ use chrono::Local;
 use std::os::raw::c_char;
 use std::path::Path;
 
+mod macos;
+
 pub fn run(out_dir: *const c_char) {
   use bridge::*;
   use std::ffi::CStr;
