@@ -35,6 +35,30 @@ impl PullResult {
       data_json: CString::new(raw).unwrap().into_raw(),
     }
   }
+
+  pub fn get_error_message(&self) -> Option<String> {
+    use std::ffi::CString;
+    if self.error_message != ptr::null_mut() {
+      let cstr = unsafe { CString::from_raw(self.error_message) };
+      let v = cstr.to_string_lossy().to_string();
+      cstr.into_raw();
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn get_data_json(&self) -> Option<String> {
+    use std::ffi::CString;
+    if self.data_json != ptr::null_mut() {
+      let cstr = unsafe { CString::from_raw(self.data_json) };
+      let v = cstr.to_string_lossy().to_string();
+      cstr.into_raw();
+      Some(v)
+    } else {
+      None
+    }
+  }
 }
 
 impl Drop for PullResult {

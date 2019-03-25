@@ -3,3 +3,4 @@ target
 .vscode
 *.log
 dist
+.DS_Store

@@ -4,10 +4,20 @@ version = "0.1.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
-[dependencies]
+[lib]
+crate-type = ["staticlib"]
+
+[[bin]]
+name = "bridge-loader"
+path = "src/bin.rs"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1.8"
 libloading = "0.5.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+bridge = { path = "../bridge" }
+
+[dependencies]
 serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-
-[build-dependencies]
-winres = "0.1.8"

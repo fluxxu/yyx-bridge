@@ -17,9 +17,11 @@ macro_rules! debug {
 use std::ffi::CString;
 use std::os::raw::c_char;
 
+mod deserialize;
 mod result;
 mod version;
 pub use self::result::PullResult;
+pub use self::version::VERSION;
 
 mod emulator;
 #[cfg(target_os = "windows")]
@@ -28,7 +30,7 @@ mod windows;
 #[cfg(target_os = "windows")]
 #[no_mangle]
 pub extern "stdcall" fn DllMain(
-  hinst_dll: HINSTANCE,
+  hinst_dll: ::winapi::shared::minwindef::HINSTANCE,
   fdw_reason: u32,
   _: *mut winapi::ctypes::c_void,
 ) {
@@ -43,8 +45,13 @@ pub extern "stdcall" fn DllMain(
 
 #[cfg(target_os = "windows")]
 #[no_mangle]
-pub unsafe extern "C" fn pull_run() -> PullResult {
+pub unsafe extern "C" fn pull_windows() -> PullResult {
   windows::run_server()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn pull_emulator() -> PullResult {
+  emulator::run()
 }
 
 #[no_mangle]

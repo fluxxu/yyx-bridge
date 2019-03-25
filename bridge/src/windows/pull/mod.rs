@@ -1,8 +1,5 @@
 use crossbeam_channel::{bounded, Receiver, Sender, TryRecvError};
-use serde::Serialize;
-use serde_json::{self, json, Value};
-use std::ffi::CString;
-use std::os::raw::c_char;
+use serde_json::Value;
 use std::ptr;
 use std::thread;
 
@@ -11,7 +8,9 @@ use bridge_types::Snapshot;
 
 use super::api;
 use super::result::*;
-use super::result::PullResult;
+
+use crate::PullResult;
+use crate::deserialize::deserialize_data;
 
 macro_rules! pipe_name {
   () => {
@@ -28,7 +27,7 @@ pub fn get_error_json(msg: String) -> String {
 }
 
 fn run_client_script() -> BridgeResult<i32> {
-  api::run(&secret_string_from_file!("bridge/assets/client.py"))
+  api::run(&secret_string_from_file!("bridge/assets/client_windows.py"))
 }
 
 pub fn run_client() {
@@ -188,25 +187,6 @@ pub fn run_server() -> PullResult {
     }
     _ => PullResult::err(&format!("Unexpected message type.")),
   }
-}
-
-fn deserialize_data(bytes: &[u8]) -> Result<Snapshot, BridgeError> {
-  use bridge_value::{ParseClientValue, ParseClientValueError};
-  let value: Value = serde_json::from_reader(bytes)
-    .map_err(|err| BridgeError::ParseSnapshotData(err.to_string()))?;
-  if let Some(msg) = value
-    .as_object()
-    .and_then(|o| o.get("error").cloned())
-    .and_then(|v| v.as_str().map(|v| v.to_owned()))
-  {
-    return Err(BridgeError::ParseSnapshotData(msg.to_owned()));
-  }
-  Snapshot::parse_client_value(&value).map_err(|err| {
-    BridgeError::ParseSnapshotData(match err {
-      ParseClientValueError::TypeMismatch => format!("Type mismatch."),
-      ParseClientValueError::Message(msg) => msg,
-    })
-  })
 }
 
 enum PipeMsg {

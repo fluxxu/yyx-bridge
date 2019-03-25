@@ -1,13 +1,13 @@
 [package]
 name = "bridge"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
-[dependencies]
+[target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.6", features = [
   "libloaderapi", 
   "winver", 
@@ -23,11 +23,17 @@ winapi = { version = "0.3.6", features = [
   "winver",
   "ioapiset"
 ] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+
+[dependencies]
 failure = "0.1.3"
 failure_derive = "0.1.3"
 bridge-value = { path = "../bridge-value" }
 bridge-types = { path = "../bridge-types" }
 bridge-derive = { path = "../bridge-derive" }
+adb-rs = { git = "https://github.com/fluxxu/adb-rs.git" }
 serde = "1.0"
 serde_json = "1.0"
 log = "0.4"
