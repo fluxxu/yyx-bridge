@@ -46,17 +46,20 @@ impl PullResult {
 }
 
 fn main() {
+  use std::env;
   use std::ffi::CStr;
+
+  let is_emu_mode = env::args().any(|item| item == "-emu");
 
   println!("Loading...");
 
   let lib = libloading::Library::new("bridge.dll").unwrap();
   let LibInterface {
     pull_windows,
+    pull_emulator,
     pull_free,
     version_get,
     version_free,
-    ..
   } = get_symbols(&lib);
   let version = version_get();
   let version_str = unsafe { CStr::from_ptr(version).to_string_lossy().to_string() };
@@ -65,7 +68,11 @@ fn main() {
   println!("Bridge version: {}", version_str);
   println!("Generating snapshot...");
 
-  let res = pull_windows();
+  let res = if is_emu_mode {
+    pull_emulator()
+  } else {
+    pull_windows()
+  };
   handle_result(&version_str, &res);
   pull_free(res);
 }

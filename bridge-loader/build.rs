@@ -1,17 +1,6 @@
 #[cfg(target_os = "macos")]
 extern crate cc;
 
-#[cfg(target_os = "windows")]
-extern crate winres;
-
-#[cfg(target_os = "windows")]
-fn main() {
-  let mut res = winres::WindowsResource::new();
-  res.set_icon("yyx.ico");
-  res.set_manifest(include_str!("./manifest.xml"));
-  res.compile().unwrap();
-}
-
 #[cfg(target_os = "macos")]
 fn main() {
   cc::Build::new()

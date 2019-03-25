@@ -39,6 +39,9 @@ pub fn run_impl() -> BridgeResult<Snapshot> {
   }
 
   println!("Connecting to MuMu...");
+  #[cfg(target_os = "windows")]
+  let mut conn = AdbClient::new("host::").connect("127.0.0.1:7555")?;
+  #[cfg(target_os = "macos")]
   let mut conn = AdbClient::new("host::").connect("127.0.0.1:5555")?;
 
   let bytes = Cursor::new(BRIDGE_BINARY);
