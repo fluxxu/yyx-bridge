@@ -17,7 +17,10 @@ pub fn inject_dll_to_yys<P: AsRef<Path>>(path: P) -> BridgeResult<()> {
   use super::window::*;
   use std::ffi::CString;
   let class = CString::new(YYS_WINDOW_CLASS).unwrap();
+  #[cfg(not(feature = "steam"))]
   let title = CString::new(YYS_WINDOW_TITLE).unwrap();
+  #[cfg(feature = "steam")]
+  let title = CString::new("Onmyoji").unwrap();
   let hwnd = unsafe { find_window_by_class_and_title(class.as_ptr(), title.as_ptr()) };
   if hwnd.is_null() {
     return Err(BridgeError::Inject(InjectError::YYSWindowNotFound));

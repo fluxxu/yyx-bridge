@@ -8,8 +8,8 @@ use std::mem::transmute;
 use std::os::raw::c_char;
 use std::sync::Mutex;
 
-use super::process;
-use super::result::*;
+use crate::windows::process;
+use crate::windows::result::*;
 
 const OFFSET_PYGILSTATE_ENSURE: isize = 0xc139e0;
 const OFFSET_PYGILSTATE_RELEASE: isize = 0xc13a70;

@@ -4,7 +4,7 @@ from DynamicConfigData import DATA_HERO, DATA_EQUIP_ATTR, DATA_EQUIP_INIT, DATA_
 import com.utils.helpers as helpers
 import com.const as CONST
 
-f = open(r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b', 'wb+', buffering=0)
+f = open(r'c:\Data\test.txt', 'wb+', buffering=0)
 try:
     player = Globals.player1
     if player == None:
@@ -51,8 +51,8 @@ try:
             equip.equipId,
             equip.strongLevel,
             equip.born,
-            equip.lock,
-            equip.garbage,
+            bool(equip.lock),
+            bool(equip.garbage),
             # 'strengthened_base_attr_value': equip.strengthenedBaseAttrValue,
             # 'base_attr': equip.baseAttrDict,
             # 'attr': equip.attrDict,
@@ -80,7 +80,7 @@ try:
             # hero._name,
             hero.nickName,
             hero.born,
-            hero.lock,
+            bool(hero.lock),
             hero.rarity,
             hero.skillList,
             hero.awake,
@@ -127,14 +127,6 @@ try:
             ]
         ]
 
-    def map_realm_card(id, card):
-        return [
-            id,
-            card.itemid,
-            card.totalTime,
-            card.produceValue,
-        ]
-
     def get_item_presets():
         preset_items = helpers.getUserConfig('equipDrawer', [])
         preset_names = helpers.getUserConfig('equipDrawerName', [])
@@ -154,8 +146,30 @@ try:
             ]
         return [map(id, data) for id, data in DATA_HERO.data.items() if data['type'] in heroTypeList]
 
-    data = [map_realm_card(id, data)
+    def map_realm_card(id, card):
+        return [
+            id,
+            card.itemid,
+            card.totalTime,
+            card.produceValue,
+        ]
+
+    data = [
+        [player.short_id, player.name, player.level],
+        [
+            player.currency.get(CONST.CurrencyType.COIN),  # COIN
+            player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
+            player.currency.get(
+                CONST.CurrencyType.STRENGTH),  # STRENGTH
+        ],
+        [map_hero(id, i) for id, i in player.heroes.items()
+         if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
+        [map_equip(id, e) for id, e in player.inventory.items()],
+        get_item_presets(),
+        get_hero_shards(),
+        [map_realm_card(id, data)
             for id, data in Globals.player1.myJiejieCardDataDict.items()]
+    ]
 
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
 except Exception as e:
