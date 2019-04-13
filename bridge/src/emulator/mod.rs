@@ -29,7 +29,11 @@ pub fn run() -> PullResult {
   }
 }
 
+#[cfg(not(feature = "guild"))]
 const BRIDGE_BINARY: &[u8] = include_bytes!("../../assets/yyx-bridge-android") as &[u8];
+
+#[cfg(feature = "guild")]
+const BRIDGE_BINARY: &[u8] = include_bytes!("../../assets/yyx-bridge-guild-android") as &[u8];
 
 pub fn run_impl() -> BridgeResult<Snapshot> {
   use adb_rs::push::AdbPush;

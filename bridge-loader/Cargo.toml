@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
+[features]
+default = ["guild"]
+guild = []
+
 [lib]
 crate-type = ["staticlib"]
 
@@ -20,3 +24,7 @@ bridge = { path = "../bridge" }
 [dependencies]
 serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
+serde = "1.0"
+serde_derive = "1.0"
+csv = "1"
+bridge-types = { path = "../bridge-types" }
