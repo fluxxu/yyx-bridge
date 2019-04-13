@@ -1,5 +1,18 @@
 import json
+import Globals
 import module.guild.GuildLogic as GuildLogic
+
+
+def get_task_records():
+    panel = Globals.uiMgr.getUI('GuildTaskRecordPanel')
+    if panel == None:
+        return {}
+    records = panel.records
+    if records == None:
+        return {}
+    return {
+        str(v.get('id')): v for v in records
+    }
 
 
 def map_guild(g):
@@ -19,8 +32,23 @@ def map_guild(g):
     data = [
         str(g.get(k)) if k == '_id' or k == 'creator_id' else g.get(k) for k in keys
     ]
-    data.append([map_guild_member(m)
-                 for m in GuildLogic.myGuildDetail['members']])
+    task_records = get_task_records()
+    members = []
+    for m in GuildLogic.myGuildDetail['members']:
+        idstr = str(m.get('id'))
+        record = task_records.get(idstr)
+        if record != None:
+            m['_task_week_finished_times'] = int(
+                record.get('week_finished_times') or 0)
+            m['_task_day_finished_times'] = int(
+                record.get('day_finished_times') or 0)
+        else:
+            m['_task_week_finished_times'] = -1
+            m['_task_day_finished_times'] = -1
+
+        mapped = map_guild_member(m)
+        members.append(mapped)
+    data.append(members)
     return data
 
 
@@ -41,6 +69,8 @@ def map_guild_member(m):
         m.get("receive_times") or 0,
         m.get("total_feats") or 0,
         m.get("pvp_score") or 0,
+        m.get("_task_day_finished_times"),
+        m.get("_task_week_finished_times"),
     ]
 
 

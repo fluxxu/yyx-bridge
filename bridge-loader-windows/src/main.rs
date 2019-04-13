@@ -53,12 +53,32 @@ fn main() {
 
   let is_emu_mode = env::args().any(|item| item == "-emu");
 
-  println!("Loading...");
+  #[cfg(not(feature = "guild"))]
+  {
+    println!("痒痒熊快照");
+    println!("https://nga.178.com/read.php?tid=16557282");
+  }
 
-  let lib = match libloading::Library::new("bridge.dll") {
+  #[cfg(feature = "guild")]
+  {
+    println!("痒痒熊寮快照");
+    println!("https://nga.178.com/read.php?tid=16941381");
+  }
+
+  println!("****************************************");
+
+  println!("装载中...");
+
+  #[cfg(not(feature = "guild"))]
+  let dllname = { "bridge.dll" };
+
+  #[cfg(feature = "guild")]
+  let dllname = { "bridge-guild.dll" };
+
+  let lib = match libloading::Library::new(dllname) {
     Ok(lib) => lib,
     Err(err) => {
-      println!("Error loading bridge.dll: {}", err);
+      println!("装载bridge失败: {}", err);
       wait_input();
       return;
     }
@@ -74,8 +94,8 @@ fn main() {
   let version_str = unsafe { CStr::from_ptr(version).to_string_lossy().to_string() };
   version_free(version);
 
-  println!("Bridge version: {}", version_str);
-  println!("Generating snapshot...");
+  println!("Bridge版本: {}", version_str);
+  println!("正在生成快照...");
 
   let r = if is_emu_mode {
     pull_emulator()
@@ -83,11 +103,13 @@ fn main() {
     pull_windows()
   };
   if let Err(err) = handle_result(&version_str, &r) {
-    println!("Error: {}", err);
-
-    wait_input();
+    println!("错误: {}", err);
+  } else {
+    println!("快照已生成。");
   }
   pull_free(r);
+
+  wait_input();
 }
 
 fn get_symbols<'a>(lib: &'a Library) -> LibInterface<'a> {
@@ -176,12 +198,16 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
     pub pvp_score: i64,
     #[serde(rename = "累计勋章")]
     pub medals: i64,
-    #[serde(rename = "道馆次数")]
-    pub dg_times: i64,
     #[serde(rename = "赠送次数")]
     pub donate_times: i64,
     #[serde(rename = "受赠次数")]
     pub receive_times: i64,
+    #[serde(rename = "今日任务完成次数")]
+    pub task_finished_day: i64,
+    #[serde(rename = "本周任务完成次数")]
+    pub task_finished_week: i64,
+    #[serde(rename = "dg_times")]
+    pub dg_times: i64,
   }
 
   fn format_timestamp(t: i64) -> String {
@@ -244,6 +270,8 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
         receive_times: member.receive_times,
         total_feats: member.total_feats,
         pvp_score: member.pvp_score,
+        task_finished_day: member.task_finished_day,
+        task_finished_week: member.task_finished_week,
       };
       csv_writer.serialize(row)?;
     }

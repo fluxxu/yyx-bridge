@@ -42,4 +42,6 @@ pub struct GuildMember {
   pub receive_times: i64,
   pub total_feats: i64,
   pub pvp_score: i64,
+  pub task_finished_day: i64,
+  pub task_finished_week: i64,
 }
