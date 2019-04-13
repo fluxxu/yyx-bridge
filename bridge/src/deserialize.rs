@@ -1,4 +1,9 @@
+#[cfg(not(feature = "guild"))]
 use bridge_types::Snapshot;
+
+#[cfg(feature = "guild")]
+use bridge_types::Guild as Snapshot;
+
 use bridge_value;
 use serde_json::Value;
 

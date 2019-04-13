@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::{ptr};
+use std::ptr;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -15,9 +15,14 @@ pub struct Section {
 //   }
 // }
 
+#[cfg(feature = "fg")]
+type FindPidByExeNameCallback = extern "C" fn(*const c_char) -> bool;
+
 extern "C" {
   fn get_version(dst: *mut c_char) -> bool;
   fn get_code_section_impl(section: *mut Section) -> bool;
+  #[cfg(feature = "fg")]
+  fn find_pid_by_path(exe_name: *const c_char, callback: FindPidByExeNameCallback) -> u32;
 }
 
 pub fn get_code_section() -> Option<Section> {
@@ -48,5 +53,25 @@ pub fn get_version_string() -> String {
     } else {
       "".to_owned()
     }
+  }
+}
+
+// Facebook Gameroom
+#[cfg(feature = "fg")]
+pub fn find_fg_pid() -> u32 {
+  use bridge_derive::secret_string;
+  use std::ffi::CString;
+  let name_cstring = CString::new(secret_string!("client.exe")).unwrap();
+  unsafe { find_pid_by_path(name_cstring.as_ptr(), find_fg_pid_callback) }
+}
+
+#[cfg(feature = "fg")]
+extern "C" fn find_fg_pid_callback(name: *const c_char) -> bool {
+  use bridge_derive::secret_string;
+  unsafe {
+    use std::ffi::CStr;
+    let name_str = CStr::from_ptr(name).to_string_lossy();
+    // println!("name = {}", name_str);
+    name_str.ends_with("client.exe") && name_str.contains(&secret_string!("638864706286069"))
   }
 }

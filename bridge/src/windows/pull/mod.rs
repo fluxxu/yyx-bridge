@@ -25,7 +25,15 @@ pub fn get_error_json(msg: String) -> String {
 }
 
 fn run_client_script() -> BridgeResult<i32> {
-  api::run(&secret_string_from_file!("bridge/assets/client_windows.py"))
+  #[cfg(feature = "guild")]
+  {
+    api::run(&secret_string_from_file!("bridge/assets/client_guild.py"))
+  }
+
+  #[cfg(not(feature = "guild"))]
+  {
+    api::run(&secret_string_from_file!("bridge/assets/client_windows.py"))
+  }
 }
 
 pub fn run_client() {
@@ -35,21 +43,42 @@ pub fn run_client() {
     debug!("client error: {}", err);
     unsafe {
       use std::ffi::CString;
+      use winapi::shared::sddl::*;
       use winapi::shared::winerror::*;
       use winapi::um::errhandlingapi::*;
       use winapi::um::fileapi::*;
       use winapi::um::handleapi::*;
+      use winapi::um::minwinbase::SECURITY_ATTRIBUTES;
       use winapi::um::winbase::*;
       use winapi::um::winnt::*;
 
       let pipe_name = pipe_name!();
+      let mut sd: PSECURITY_DESCRIPTOR = ptr::null_mut();
+      let sdstr = CString::new("(A;OICI;GRGWGX;;;AU)").unwrap();
+
+      ConvertStringSecurityDescriptorToSecurityDescriptorA(
+        sdstr.as_ptr(),
+        SDDL_REVISION_1.into(),
+        &mut sd as *mut PSECURITY_DESCRIPTOR,
+        ptr::null_mut(),
+      );
+
+      let mut sattrs = SECURITY_ATTRIBUTES {
+        nLength: ::std::mem::size_of::<SECURITY_ATTRIBUTES>() as u32,
+        lpSecurityDescriptor: sd,
+        bInheritHandle: 0,
+      };
 
       loop {
         let pipe = CreateFileA(
           CString::new(&pipe_name as &str).unwrap().as_ptr(),
           GENERIC_WRITE | GENERIC_READ,
           0,
-          ptr::null_mut(),
+          if sd != ptr::null_mut() {
+            &mut sattrs as *mut SECURITY_ATTRIBUTES
+          } else {
+            ptr::null_mut()
+          },
           OPEN_EXISTING,
           0,
           ptr::null_mut(),

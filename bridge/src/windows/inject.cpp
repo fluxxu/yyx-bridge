@@ -87,6 +87,43 @@ enum class InjectResult
   RemoteLoadLibrary = 4
 };
 
+extern "C" InjectResult inject_pid_and_wait(DWORD pid, LPWSTR lpLibPath)
+{
+  HANDLE process = OpenProcess(1, FALSE, pid);
+  HANDLE currentProcess = GetCurrentProcess();
+  if (process)
+  {
+    printf("Process opened (1): 0x%X\n", (unsigned int)process);
+    HANDLE newProcess;
+    if (DuplicateHandle(currentProcess, process, currentProcess, &newProcess, PROCESS_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
+    {
+      printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
+      printf("Injecting...");
+      if (RemoteLoadLibrary(newProcess, lpLibPath))
+      {
+        printf("Injected.\n");
+        WaitForSingleObject(newProcess, INFINITE);
+        CloseHandle(newProcess);
+        printf("Process ended.\n");
+        return InjectResult::Ok;
+      }
+      else
+      {
+        CloseHandle(newProcess);
+        return InjectResult::RemoteLoadLibrary;
+      }
+    }
+    else
+    {
+      return InjectResult::DuplicateHandle;
+    }
+  }
+  else
+  {
+    return InjectResult::OpenProcess;
+  }
+}
+
 extern "C" InjectResult inject_and_wait(HWND win, LPWSTR lpLibPath)
 {
   printf("Find window: %X\n", (unsigned int)win);
@@ -94,40 +131,7 @@ extern "C" InjectResult inject_and_wait(HWND win, LPWSTR lpLibPath)
   GetWindowThreadProcessId(win, &pid);
   if (pid)
   {
-    printf("Find PID: %X\n", pid);
-    HANDLE process = OpenProcess(1, FALSE, pid);
-    HANDLE currentProcess = GetCurrentProcess();
-    if (process)
-    {
-      printf("Process opened (1): 0x%X\n", (unsigned int)process);
-      HANDLE newProcess;
-      if (DuplicateHandle(currentProcess, process, currentProcess, &newProcess, PROCESS_ALL_ACCESS, FALSE, DUPLICATE_CLOSE_SOURCE))
-      {
-        printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
-        printf("Injecting...");
-        if (RemoteLoadLibrary(newProcess, lpLibPath))
-        {
-          printf("Injected.\n");
-          WaitForSingleObject(newProcess, INFINITE);
-          CloseHandle(newProcess);
-          printf("Process ended.\n");
-          return InjectResult::Ok;
-        }
-        else
-        {
-          CloseHandle(newProcess);
-          return InjectResult::RemoteLoadLibrary;
-        }
-      }
-      else
-      {
-        return InjectResult::DuplicateHandle;
-      }
-    }
-    else
-    {
-      return InjectResult::OpenProcess;
-    }
+    return inject_pid_and_wait(pid, lpLibPath);
   }
   else
   {

@@ -4,6 +4,8 @@ mod inject;
 mod process;
 mod ptr;
 mod utils;
+
+#[cfg(not(feature = "fg"))]
 mod window;
 
 mod api;

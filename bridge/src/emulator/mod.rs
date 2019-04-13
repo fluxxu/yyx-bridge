@@ -1,6 +1,10 @@
 mod result;
 
+#[cfg(not(feature = "guild"))]
 use bridge_types::Snapshot;
+
+#[cfg(feature = "guild")]
+use bridge_types::Guild as Snapshot;
 
 use crate::deserialize::{deserialize_data, DeserializeError};
 use crate::result::PullResult;

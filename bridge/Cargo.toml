@@ -1,6 +1,6 @@
 [package]
 name = "bridge"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
@@ -8,8 +8,11 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# default = ["steam"]
-steam = []
+default = ["guild"]
+noadmin = []
+steam = ["noadmin"]
+fg = ["noadmin"]
+guild = []
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.6", features = [
@@ -25,7 +28,8 @@ winapi = { version = "0.3.6", features = [
   "handleapi",
   "fileapi",
   "winver",
-  "ioapiset"
+  "ioapiset",
+  "sddl"
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

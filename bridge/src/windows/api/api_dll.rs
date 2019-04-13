@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use bridge_derive::{secret_string, secret_string_from_file};
+use bridge_derive::secret_string;
 use lazy_static::lazy_static;
 use std::ffi::CString;
 use std::mem::transmute;
