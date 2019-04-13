@@ -107,12 +107,16 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
     pub pvp_score: i64,
     #[serde(rename = "累计勋章")]
     pub medals: i64,
-    #[serde(rename = "道馆次数")]
-    pub dg_times: i64,
     #[serde(rename = "赠送次数")]
     pub donate_times: i64,
     #[serde(rename = "受赠次数")]
     pub receive_times: i64,
+    #[serde(rename = "今日任务完成次数")]
+    pub task_finished_day: i64,
+    #[serde(rename = "本周任务完成次数")]
+    pub task_finished_week: i64,
+    #[serde(rename = "dg_times")]
+    pub dg_times: i64,
   }
 
   fn format_timestamp(t: i64) -> String {
@@ -176,6 +180,8 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
         receive_times: member.receive_times,
         total_feats: member.total_feats,
         pvp_score: member.pvp_score,
+        task_finished_day: member.task_finished_day,
+        task_finished_week: member.task_finished_week,
       };
       csv_writer.serialize(row)?;
     }
