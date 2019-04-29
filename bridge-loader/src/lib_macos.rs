@@ -43,16 +43,16 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
     let ts = Local::now().format("%Y%m%d%H%M%S");
 
     let value: serde_json::Value = serde_json::from_str(&res.get_data_json().ok_or_else(|| "No data")?)?;
-    let short_id: i64 = value
+    let (short_id, server_id): (i64, i64) = value
       .as_object()
       .and_then(|obj| {
         obj.get("player").and_then(|p| {
           p.as_object()
-            .and_then(|p| p.get("id").and_then(|id| id.as_i64()))
+            .and_then(|p| Some((p.get("id")?.as_i64()?, p.get("server_id")?.as_i64()?)))
         })
       })
-      .unwrap_or(0);
-    let path = format!("yyx_snapshot_{}_{}.json", ts, short_id);
+      .unwrap_or((0, 0));
+    let path = format!("yyx_snapshot_{}_{}_{}.json", ts, server_id, short_id);
     write(
       out_path.join(&path),
       serde_json::to_string_pretty(&json!({
@@ -115,7 +115,7 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
     pub task_finished_day: i64,
     #[serde(rename = "本周任务完成次数")]
     pub task_finished_week: i64,
-    #[serde(rename = "dg_times")]
+    #[serde(rename = "道馆完成次数")]
     pub dg_times: i64,
   }
 
@@ -137,10 +137,15 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
 
     let value: serde_json::Value =
       serde_json::from_str(&res.get_data_json().ok_or_else(|| "No data")?)?;
-    let short_id: i64 = value
+    let (short_id, server_id): (i64, i64) = value
       .as_object()
-      .and_then(|obj| obj.get("short_id").and_then(|id| id.as_i64()))
-      .unwrap_or(0);
+      .and_then(|obj| {
+        Some((
+          obj.get("short_id")?.as_i64()?,
+          obj.get("server_id")?.as_i64()?,
+        ))
+      })
+      .unwrap_or((0, 0));
     let members: Vec<GuildMember> = serde_json::from_value(
       value
         .as_object()
@@ -150,8 +155,8 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
     )
     .unwrap_or(vec![]);
     let path = out_path.join(format!(
-      "yyx_guild_snapshot_{}_{}_members.csv",
-      ts, short_id
+      "yyx_guild_snapshot_{}_{}_{}_members.csv",
+      ts, server_id, short_id
     ));
     let mut f = File::create(&path)?;
     // UTF8 BOM
@@ -189,7 +194,7 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
 
     println!("Guild members csv generated: {:?}", &path);
 
-    let path = out_path.join(format!("yyx_guild_snapshot_{}_{}.json", ts, short_id));
+    let path = out_path.join(format!("yyx_guild_snapshot_{}_{}_{}.json", ts, server_id, short_id));
 
     write(
       &path,
