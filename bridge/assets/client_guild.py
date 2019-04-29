@@ -15,7 +15,7 @@ def get_task_records():
     }
 
 
-def map_guild(g):
+def map_guild(server_id, g):
     keys = [
         "_id",
         "creator_id",
@@ -49,6 +49,7 @@ def map_guild(g):
         mapped = map_guild_member(m)
         members.append(mapped)
     data.append(members)
+    data.append(server_id)
     return data
 
 
@@ -79,7 +80,11 @@ try:
     if GuildLogic.myGuildDetail == None:
         raise Exception('Guild data not available.')
 
-    data = map_guild(GuildLogic.myGuildDetail)
+    player = Globals.player1
+    if player == None:
+        raise Exception('Player data not available.')
+
+    data = map_guild(player.server_id, GuildLogic.myGuildDetail)
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
 except Exception as e:
     f.write(json.dumps({

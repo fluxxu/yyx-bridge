@@ -158,7 +158,7 @@ pub fn run_server() -> PullResult {
     _ => return PullResult::err(&format!("Unexpected message type.")),
   };
 
-  println!("Connecting...");
+  println!("连接中...");
 
   debug!("pipe server started, injecting {:?}...", dll_path);
   let remote_err = if let Err(err) = inject::inject_dll_to_yys(dll_path) {
@@ -271,7 +271,7 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
 
     debug!("connected = {}", connected);
 
-    println!("Reading...");
+    println!("读取中...");
 
     let mut terminated = !connected
       || match r.try_recv() {
@@ -327,7 +327,10 @@ fn pipe_server_worker(s: Sender<PipeMsg>, r: Receiver<PipeMsg>) {
     debug!("pipe closed.");
     s.send(PipeMsg::ServerStopped {
       err: if terminated {
-        Some(format!("Terminated: {}", last_err))
+        Some(format!(
+          "进程异常终止，请确保你使用的是官网最新版的阴阳师: {}",
+          last_err
+        ))
       } else {
         None
       },

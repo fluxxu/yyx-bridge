@@ -11,9 +11,9 @@ use std::sync::Mutex;
 use crate::windows::process;
 use crate::windows::result::*;
 
-const OFFSET_PYGILSTATE_ENSURE: isize = 0xc139e0;
-const OFFSET_PYGILSTATE_RELEASE: isize = 0xc13a70;
-const OFFSET_PYRUN_SIMPLESTRINGFLAGS: isize = 0xc0dc90;
+const OFFSET_PYGILSTATE_ENSURE: isize = 0xc13d80;
+const OFFSET_PYGILSTATE_RELEASE: isize = 0xc13e10;
+const OFFSET_PYRUN_SIMPLESTRINGFLAGS: isize = 0xc0e030;
 
 type _PyGILState_Ensure = unsafe extern "cdecl" fn() -> *const ();
 type _PyGILState_Release = unsafe extern "cdecl" fn(*const ());

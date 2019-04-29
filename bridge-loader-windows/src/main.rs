@@ -108,12 +108,12 @@ fn main() {
   };
   if let Err(err) = handle_result(&version_str, &r) {
     println!("错误: {}", err);
+    wait_input();
   } else {
     println!("快照已生成。");
+    ::std::thread::sleep(::std::time::Duration::from_secs(3));
   }
   pull_free(r);
-
-  wait_input();
 }
 
 fn get_symbols<'a>(lib: &'a Library) -> LibInterface<'a> {
@@ -131,7 +131,6 @@ fn get_symbols<'a>(lib: &'a Library) -> LibInterface<'a> {
 #[cfg(not(feature = "guild"))]
 fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> {
   use std::fs::write;
-  use std::io::stdin;
 
   if res.is_ok {
     use serde_json::{self, json};
@@ -140,17 +139,17 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
 
     let value: serde_json::Value =
       serde_json::from_str(&res.get_data_json().ok_or_else(|| "No data")?)?;
-    let short_id: i64 = value
+    let (short_id, server_id): (i64, i64) = value
       .as_object()
       .and_then(|obj| {
         obj.get("player").and_then(|p| {
           p.as_object()
-            .and_then(|p| p.get("id").and_then(|id| id.as_i64()))
+            .and_then(|p| Some((p.get("id")?.as_i64()?, p.get("server_id")?.as_i64()?)))
         })
       })
-      .unwrap_or(0);
+      .unwrap_or((0, 0));
     write(
-      format!("yyx_snapshot_{}_{}.json", ts, short_id),
+      format!("yyx_snapshot_{}_{}_{}.json", ts, server_id, short_id),
       serde_json::to_string_pretty(&json!({
         "timestamp": now,
         "version": version_str,
@@ -210,7 +209,7 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
     pub task_finished_day: i64,
     #[serde(rename = "本周任务完成次数")]
     pub task_finished_week: i64,
-    #[serde(rename = "dg_times")]
+    #[serde(rename = "道馆完成次数")]
     pub dg_times: i64,
   }
 
@@ -232,10 +231,15 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
 
     let value: serde_json::Value =
       serde_json::from_str(&res.get_data_json().ok_or_else(|| "No data")?)?;
-    let short_id: i64 = value
+    let (short_id, server_id): (i64, i64) = value
       .as_object()
-      .and_then(|obj| obj.get("short_id").and_then(|id| id.as_i64()))
-      .unwrap_or(0);
+      .and_then(|obj| {
+        Some((
+          obj.get("short_id")?.as_i64()?,
+          obj.get("server_id")?.as_i64()?,
+        ))
+      })
+      .unwrap_or((0, 0));
     let members: Vec<GuildMember> = serde_json::from_value(
       value
         .as_object()
@@ -245,8 +249,8 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
     )
     .unwrap_or(vec![]);
     let mut f = File::create(format!(
-      "yyx_guild_snapshot_{}_{}_members.csv",
-      ts, short_id
+      "yyx_guild_snapshot_{}_{}_{}_members.csv",
+      ts, server_id, short_id
     ))?;
     // UTF8 BOM
     f.write_all(&[0xEF, 0xBB, 0xBF])?;
@@ -280,7 +284,7 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
       csv_writer.serialize(row)?;
     }
     write(
-      format!("yyx_guild_snapshot_{}_{}.json", ts, short_id),
+      format!("yyx_guild_snapshot_{}_{}_{}.json", ts, server_id, short_id),
       serde_json::to_string_pretty(&json!({
         "timestamp": now,
         "version": version_str,

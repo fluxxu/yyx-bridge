@@ -155,7 +155,7 @@ try:
         ]
 
     data = [
-        [player.short_id, player.name, player.level],
+        [player.short_id, player.server_id, player.name, player.level],
         [
             player.currency.get(CONST.CurrencyType.COIN),  # COIN
             player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
