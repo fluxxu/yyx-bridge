@@ -15,6 +15,7 @@ pub struct Guild {
   pub level: i64,
   pub pvp_score: i64,
   pub members: Vec<GuildMember>,
+  pub server_id: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, ParseClientValue, Copy, Clone)]

@@ -4,6 +4,7 @@ use serde_derive::Serialize;
 #[derive(Debug, Serialize, ParseClientValue, PartialEq)]
 pub struct Player {
   pub id: i64,
+  pub server_id: i64,
   pub name: String,
   pub level: i64,
 }
