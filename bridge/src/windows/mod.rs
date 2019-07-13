@@ -1,5 +1,6 @@
 mod result;
 
+mod byte_pattern;
 mod inject;
 mod process;
 mod ptr;
@@ -38,7 +39,8 @@ fn is_game_process() -> bool {
   let app_path = utils::get_module_path(::std::ptr::null_mut());
   debug!("app path = {:?}", app_path);
   if let Some(name) = app_path.file_name().and_then(|v| v.to_str()) {
-    return name == secret_string!("onmyoji.exe") || name == secret_string!("client.exe");
+    let name_low = name.to_lowercase();
+    return name_low == secret_string!("onmyoji.exe") || name_low == secret_string!("client.exe");
   } else {
     return false;
   }

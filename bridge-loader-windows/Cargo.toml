@@ -6,8 +6,10 @@ edition = "2018"
 
 [features]
 default = ["guild"]
+# default = ["guild", "noadmin"]
 noadmin = []
 guild = []
+dmm = []
 
 [dependencies]
 libloading = "0.5.0"

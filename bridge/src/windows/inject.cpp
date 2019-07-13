@@ -4,6 +4,16 @@
 // #include <cstdio>
 #define printf()
 
+typedef LONG(NTAPI *NtSuspendProcess)(IN HANDLE ProcessHandle);
+
+void suspend_process(HANDLE processHandle)
+{
+  NtSuspendProcess pfnNtSuspendProcess = (NtSuspendProcess)GetProcAddress(
+      GetModuleHandleA("ntdll"), "NtSuspendProcess");
+
+  pfnNtSuspendProcess(processHandle);
+}
+
 __forceinline HMODULE GetProcessModuleAddress(HANDLE process, const wchar_t *dllname)
 {
   HMODULE arr[100];
@@ -99,6 +109,7 @@ extern "C" InjectResult inject_pid_and_wait(DWORD pid, LPWSTR lpLibPath)
     {
       printf("Process opened (2): 0x%X\n", (unsigned int)newProcess);
       printf("Injecting...");
+      // suspend_process(newProcess);
       if (RemoteLoadLibrary(newProcess, lpLibPath))
       {
         printf("Injected.\n");

@@ -21,6 +21,11 @@ fn main() {
     .file("src/windows/process.cpp")
     .compile("process");
 
+  cc::Build::new()
+    .cpp(true)
+    .file("src/windows/byte_pattern.cpp")
+    .compile("byte_pattern");
+
   write_version()
 }
 

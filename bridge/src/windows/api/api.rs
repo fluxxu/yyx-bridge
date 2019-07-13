@@ -1,19 +1,16 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use bridge_derive::secret_string_from_file;
+use bridge_derive::secret_string;
 use lazy_static::lazy_static;
 use std::ffi::CString;
 use std::mem::transmute;
 use std::os::raw::c_char;
 use std::sync::Mutex;
 
+use crate::windows::byte_pattern;
 use crate::windows::process;
 use crate::windows::result::*;
-
-const OFFSET_PYGILSTATE_ENSURE: isize = 0xc13d80;
-const OFFSET_PYGILSTATE_RELEASE: isize = 0xc13e10;
-const OFFSET_PYRUN_SIMPLESTRINGFLAGS: isize = 0xc0e030;
 
 type _PyGILState_Ensure = unsafe extern "cdecl" fn() -> *const ();
 type _PyGILState_Release = unsafe extern "cdecl" fn(*const ());
@@ -30,20 +27,44 @@ struct State {
 }
 
 #[inline(always)]
+fn resolve_state(code_section: &process::Section) -> Option<State> {
+  let P_PYGILSTATE_ENSURE = secret_string!("56 57 FF 35 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8B F0 83 C4 04");
+  let p_PyGILState_Ensure = {
+    let pattern = byte_pattern::PatternFinder::new(&P_PYGILSTATE_ENSURE);
+    pattern.find_pattern(code_section.base, code_section.size)?
+  };
+
+  let P_PYGILSTATE_RELEASE = secret_string!("55 8B EC 56 FF 35 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8B F0");
+  let p_PyGILState_Release = {
+    let pattern = byte_pattern::PatternFinder::new(&P_PYGILSTATE_RELEASE);
+    pattern.find_pattern(code_section.base, code_section.size)?
+  };
+
+  let P_PYRUN_SIMPLESTRINGFLAGS =
+    secret_string!("55 8B EC 68 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 C4 04 85 C0 74 26");
+  let p_PyRun_SimpleStringFlags = {
+    let pattern = byte_pattern::PatternFinder::new(&P_PYRUN_SIMPLESTRINGFLAGS);
+    pattern.find_pattern(code_section.base, code_section.size)?
+  };
+
+  unsafe {
+    Some(State {
+      p_PyGILState_Ensure: transmute(p_PyGILState_Ensure),
+      p_PyGILState_Release: transmute(p_PyGILState_Release),
+      p_PyRun_SimpleStringFlags: transmute(p_PyRun_SimpleStringFlags),
+    })
+  }
+}
+
+#[inline(always)]
 pub fn init() -> BridgeResult<()> {
   let version = process::get_version_string();
-  if version != secret_string_from_file!("bridge/assets/supported_version.txt") {
-    return Err(BridgeError::VersionNotSupported(version));
-  }
+
+  debug!("client version = {}", version);
+
   let code_section = process::get_code_section().ok_or_else(|| BridgeError::GetBase)?;
-  let base = code_section.base;
-  let value = unsafe {
-    State {
-      p_PyGILState_Ensure: transmute(base.offset(OFFSET_PYGILSTATE_ENSURE)),
-      p_PyGILState_Release: transmute(base.offset(OFFSET_PYGILSTATE_RELEASE)),
-      p_PyRun_SimpleStringFlags: transmute(base.offset(OFFSET_PYRUN_SIMPLESTRINGFLAGS)),
-    }
-  };
+  let value =
+    resolve_state(&code_section).ok_or_else(|| BridgeError::VersionNotSupported(version))?;
   let mut state = STATE.lock().unwrap();
   *state = Some(value);
   Ok(())

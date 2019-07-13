@@ -18,6 +18,18 @@ from DynamicConfigData import DATA_HERO
 
 # GhostWalkScene.ThrowBeanCD = ThrowBeanCD
 
+if getattr(GhostWalkScene, "__FireBean", None) == None:
+    GhostWalkScene.__FireBean = GhostWalkScene.FireBean
+
+
+def FireBean(self, offsetX, offsetY):
+    Globals.currGameScene.FairModelSpeedFactor = 0
+    Globals.currGameScene.ThrowBeanSpeedFactor = 10.0
+    return self.__FireBean(offsetX, offsetY)
+
+
+GhostWalkScene.FireBean = FireBean
+
 Globals.currGameScene.ThrowBeanSpeedFactor = 10.0
 
 if Globals.currGameScene.FairModelSpeedFactor > 0:
@@ -43,7 +55,9 @@ if getattr(Globals.currGameScene, "__ok", None) == None:
             r = DATA_HERO.data[item[0]]['rarity']
             name = DATA_HERO.data[item[0]]['name']
             if r >= 4:
-                heros.append('!!!' + name + '!!!')
+                heros.append('!!!!!!!!!!' + name + '!!!!!!!!!!')
+            elif item[0] >= 320 and item[0] < 400:
+                heros.append('**********' + name + '**********')
             else:
                 heros.append(name)
         # f.write(json.dumps(heros, ensure_ascii=False).encode('utf8'))

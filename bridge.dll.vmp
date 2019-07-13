@@ -6,10 +6,10 @@
         <Procedures>
             <Procedure MapAddress="_DllMain@12" Options="0" CompilationType="1" />
             <Procedure MapAddress="_inject_and_wait" Options="0" CompilationType="1" />
-            <Procedure MapAddress="bridge::windows::pull::run_client::h8e47cfbae5243e9b" Options="0" CompilationType="1" />
-            <Procedure MapAddress="bridge::windows::pull::run_client_script::h51be6bce40320f31" Options="0" />
-            <Procedure MapAddress="bridge::windows::pull::run_server::headdc4213b9f47ad" Options="0" CompilationType="1" />
-            <Procedure MapAddress="bridge::windows::pull::pipe_server_worker::h93be0016eb4e14fe" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::windows::pull::run_client::h369b42ffaad7edcc" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::windows::pull::run_server::h9fbb1abe7560f749" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::windows::pull::pipe_server_worker::hf97a61fdc8521b72" Options="0" CompilationType="1" />
+            <Procedure MapAddress="bridge::windows::pull::run_client_script::h173bb8c6dbe048ab" Options="0" />
         </Procedures>
         <Objects />
     </Protection>

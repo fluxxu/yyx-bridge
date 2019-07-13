@@ -1,6 +1,6 @@
 [package]
 name = "bridge"
-version = "0.5.0"
+version = "0.7.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
@@ -9,9 +9,10 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["guild"]
-noadmin = []
-steam = ["noadmin"]
-fg = ["noadmin"]
+# default = ["guild", "fg"]
+steam = []
+fg = []
+dmm = ["steam"]
 guild = []
 
 [target.'cfg(windows)'.dependencies]
