@@ -51,7 +51,10 @@ fn main() {
   use std::env;
   use std::ffi::CStr;
 
+  #[cfg(not(feature = "mumu"))]
   let is_emu_mode = env::args().any(|item| item == "-emu");
+  #[cfg(feature = "mumu")]
+  let is_emu_mode = true;
 
   #[cfg(not(feature = "guild"))]
   {

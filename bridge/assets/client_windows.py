@@ -1,6 +1,6 @@
 import json
 import Globals
-from DynamicConfigData import DATA_HERO, DATA_EQUIP_ATTR, DATA_EQUIP_INIT, DATA_EQUIP_RANDOM_ATTR
+from DynamicConfigData import DATA_HERO, DATA_EQUIP_ATTR, DATA_EQUIP_INIT, DATA_EQUIP_RANDOM_ATTR, DATA_STORY
 import com.utils.helpers as helpers
 import com.const as CONST
 
@@ -154,6 +154,21 @@ try:
             card.produceValue,
         ]
 
+    def get_story_tasks():
+        items = []
+        for id, _ in DATA_HERO.data.iteritems():
+            if id < 200 or id > 600:
+                continue
+            storyData = DATA_STORY.data.get(id)
+            if storyData != None:
+                ids = storyData.get('activityId')
+                if ids != None:
+                    for id in ids:
+                        items.append([
+                            id, Globals.jobMgr.getJobProg(id)
+                        ])
+        return items
+
     data = [
         [player.short_id, player.server_id, player.name, player.level],
         [
@@ -161,6 +176,14 @@ try:
             player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
             player.currency.get(
                 CONST.CurrencyType.STRENGTH),  # STRENGTH
+            player.currency.get(900273),  # YINGBING
+            player.currency.get(900012),  # RONGYU
+            player.currency.get(900016),  # XUNZHANG
+            player.currency.get(900090),  # GONGXUN
+            player.currency.get(900215),  # YLJZS
+            player.currency.get(900000),  # HUNYU
+            player.currency.get(900023),  # PIFU
+            player.currency.get(900024),  # TUPO
         ],
         [map_hero(id, i) for id, i in player.heroes.items()
          if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
@@ -168,7 +191,8 @@ try:
         get_item_presets(),
         get_hero_shards(),
         [map_realm_card(id, data)
-            for id, data in Globals.player1.myJiejieCardDataDict.items()]
+            for id, data in Globals.player1.myJiejieCardDataDict.items()],
+        get_story_tasks()
     ]
 
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
