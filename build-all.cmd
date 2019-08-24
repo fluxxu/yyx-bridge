@@ -12,6 +12,13 @@ mkdir %OUT%\yyx-snapshot-%VERSION%-Windows
 copy .\target\release\bridge.dll %OUT%\yyx-snapshot-%VERSION%-Windows\bridge.dll
 copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-snapshot-%VERSION%-Windows\yyx-snapshot.exe
 
+:MuMu
+cargo build --manifest-path bridge/Cargo.toml --no-default-features --release
+cargo build --manifest-path bridge-loader-windows/Cargo.toml --no-default-features --features="mumu noadmin" --release
+mkdir %OUT%\yyx-snapshot-%VERSION%-Windows
+copy .\target\release\bridge.dll %OUT%\yyx-snapshot-%VERSION%-MuMu\bridge.dll
+copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-snapshot-%VERSION%-MuMu\yyx-snapshot.exe
+
 :Steam
 cargo build --manifest-path bridge/Cargo.toml --no-default-features --features=steam --release
 cargo build --manifest-path bridge-loader-windows/Cargo.toml --no-default-features --features=noadmin --release
