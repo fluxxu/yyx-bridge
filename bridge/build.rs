@@ -31,6 +31,8 @@ fn main() {
 
 #[cfg(target_os = "macos")]
 fn main() {
+  println!("cargo:rerun-if-changed=assets/yyx-bridge-android");
+  println!("cargo:rerun-if-changed=assets/yyx-bridge-guild-android");
   write_version()
 }
 
