@@ -24,7 +24,7 @@ pub fn deserialize_data(bytes: &[u8]) -> Result<Snapshot, DeserializeError> {
   }
   Snapshot::parse_client_value(&value).map_err(|err| {
     DeserializeError::ParseSnapshotData(match err {
-      ParseClientValueError::TypeMismatch => format!("Type mismatch."),
+      ParseClientValueError::TypeMismatch(ty, value) => format!("Type mismatch: type = {}, value = {:?}", ty, value),
       ParseClientValueError::Message(msg) => msg,
     })
   })

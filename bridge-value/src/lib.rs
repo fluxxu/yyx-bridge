@@ -2,7 +2,7 @@ pub use serde_json::Value;
 
 #[derive(Debug)]
 pub enum ParseClientValueError {
-  TypeMismatch,
+  TypeMismatch(&'static str, Value),
   Message(String),
 }
 
@@ -25,7 +25,7 @@ where
         ParseClientValueError::Message(format!("error at element {}: {:?}: {}", i, err, v))
       })
     } else {
-      Err(ParseClientValueError::TypeMismatch)
+      Err(ParseClientValueError::TypeMismatch("Vec<T>", value.clone()))
     }
   }
 }
@@ -48,7 +48,7 @@ impl ParseClientValue for String {
     value
       .as_str()
       .map(|v| v.to_owned())
-      .ok_or_else(|| ParseClientValueError::TypeMismatch)
+      .ok_or_else(|| ParseClientValueError::TypeMismatch("String", value.clone()))
   }
 }
 
@@ -56,7 +56,7 @@ impl ParseClientValue for i64 {
   fn parse_client_value(value: &Value) -> Result<Self, ParseClientValueError> {
     value
       .as_i64()
-      .ok_or_else(|| ParseClientValueError::TypeMismatch)
+      .ok_or_else(|| ParseClientValueError::TypeMismatch("i64", value.clone()))
   }
 }
 
@@ -64,7 +64,7 @@ impl ParseClientValue for u64 {
   fn parse_client_value(value: &Value) -> Result<Self, ParseClientValueError> {
     value
       .as_u64()
-      .ok_or_else(|| ParseClientValueError::TypeMismatch)
+      .ok_or_else(|| ParseClientValueError::TypeMismatch("u64", value.clone()))
   }
 }
 
@@ -72,7 +72,7 @@ impl ParseClientValue for f64 {
   fn parse_client_value(value: &Value) -> Result<Self, ParseClientValueError> {
     value
       .as_f64()
-      .ok_or_else(|| ParseClientValueError::TypeMismatch)
+      .ok_or_else(|| ParseClientValueError::TypeMismatch("f64", value.clone()))
   }
 }
 
@@ -80,6 +80,6 @@ impl ParseClientValue for bool {
   fn parse_client_value(value: &Value) -> Result<Self, ParseClientValueError> {
     value
       .as_bool()
-      .ok_or_else(|| ParseClientValueError::TypeMismatch)
+      .ok_or_else(|| ParseClientValueError::TypeMismatch("bool", value.clone()))
   }
 }

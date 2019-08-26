@@ -192,7 +192,7 @@ pub fn derive_parse_client_value(tokens: TokenStream) -> TokenStream {
                 #(#inits,)*
               })
             } else {
-              Err(::bridge_value::ParseClientValueError::TypeMismatch)
+              Err(::bridge_value::ParseClientValueError::TypeMismatch(stringify!(#ident), value.clone()))
             }
           }
         }
@@ -232,7 +232,7 @@ pub fn derive_parse_client_value(tokens: TokenStream) -> TokenStream {
                 ))
               }
             } else {
-              Err(::bridge_value::ParseClientValueError::TypeMismatch)
+              Err(::bridge_value::ParseClientValueError::TypeMismatch(stringify!(#ident), value.clone()))
             }
           }
         }

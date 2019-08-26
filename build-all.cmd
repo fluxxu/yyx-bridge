@@ -15,7 +15,7 @@ copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-snapshot-%VERSION%-Win
 :MuMu
 cargo build --manifest-path bridge/Cargo.toml --no-default-features --release
 cargo build --manifest-path bridge-loader-windows/Cargo.toml --no-default-features --features="mumu noadmin" --release
-mkdir %OUT%\yyx-snapshot-%VERSION%-Windows
+mkdir %OUT%\yyx-snapshot-%VERSION%-MuMu
 copy .\target\release\bridge.dll %OUT%\yyx-snapshot-%VERSION%-MuMu\bridge.dll
 copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-snapshot-%VERSION%-MuMu\yyx-snapshot.exe
 
@@ -46,6 +46,13 @@ cargo build --manifest-path bridge-loader-windows/Cargo.toml --no-default-featur
 mkdir %OUT%\yyx-guildsnapshot-%VERSION%-Windows
 copy .\target\release\bridge.dll %OUT%\yyx-guildsnapshot-%VERSION%-Windows\bridge-guild.dll
 copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-guildsnapshot-%VERSION%-Windows\yyx-guildsnapshot.exe
+
+:GuildMuMu
+cargo build --manifest-path bridge/Cargo.toml --no-default-features --features=guild --release
+cargo build --manifest-path bridge-loader-windows/Cargo.toml --no-default-features --features="mumu noadmin" --release
+mkdir %OUT%\yyx-guildsnapshot-%VERSION%-MuMu
+copy .\target\release\bridge.dll %OUT%\yyx-guildsnapshot-%VERSION%-MuMu\bridge.dll
+copy .\target\release\bridge-loader-windows.exe %OUT%\yyx-guildsnapshot-%VERSION%-MuMu\yyx-guildsnapshot.exe
 
 :GuildSteam
 cargo build --manifest-path bridge/Cargo.toml --no-default-features --features="guild steam" --release

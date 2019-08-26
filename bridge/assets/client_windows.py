@@ -171,20 +171,20 @@ try:
 
     data = [
         [player.short_id, player.server_id, player.name, player.level],
-        [
-            player.currency.get(CONST.CurrencyType.COIN),  # COIN
-            player.currency.get(CONST.CurrencyType.GOLD),  # GOUYU
+        map(lambda v: int(v), [
+            player.currency.get(CONST.CurrencyType.COIN, 0),  # COIN
+            player.currency.get(CONST.CurrencyType.GOLD, 0),  # GOUYU
             player.currency.get(
-                CONST.CurrencyType.STRENGTH),  # STRENGTH
-            player.currency.get(900273),  # YINGBING
-            player.currency.get(900012),  # RONGYU
-            player.currency.get(900016),  # XUNZHANG
-            player.currency.get(900090),  # GONGXUN
-            player.currency.get(900215),  # YLJZS
-            player.currency.get(900000),  # HUNYU
-            player.currency.get(900023),  # PIFU
-            player.currency.get(900024),  # TUPO
-        ],
+                CONST.CurrencyType.STRENGTH, 0),  # STRENGTH
+            player.currency.get(900273, 0),  # YINGBING
+            player.currency.get(900012, 0),  # RONGYU
+            player.currency.get(900016, 0),  # XUNZHANG
+            player.currency.get(900090, 0),  # GONGXUN
+            player.currency.get(900215, 0),  # YLJZS
+            player.currency.get(900000, 0),  # HUNYU
+            player.currency.get(900023, 0),  # PIFU
+            player.currency.get(900024, 0),  # TUPO
+        ]),
         [map_hero(id, i) for id, i in player.heroes.items()
          if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
         [map_equip(id, e) for id, e in player.inventory.items()],
