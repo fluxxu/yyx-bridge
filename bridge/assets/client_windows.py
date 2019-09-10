@@ -184,6 +184,16 @@ try:
             player.currency.get(900000, 0),  # HUNYU
             player.currency.get(900023, 0),  # PIFU
             player.currency.get(900024, 0),  # TUPO
+            player.currency.get(490002, 0),  # BAIPIAO broken_amulet
+            player.currency.get(490001, 0),  # LANPIAO mystery_amulet
+            player.currency.get(490004, 0),  # XIANSHI ar_amulet
+            player.currency.get(900178, 0),  # YUZHA ofuda
+            player.currency.get(900188, 0),  # JINYUZHA gold_ofuda
+            player.currency.get(900216, 0),  # 八岐大蛇鳞片 scale
+            player.currency.get(900217, 0),  # 大蛇的逆鳞 reverse_scale
+            player.currency.get(900218, 0),  # 逢魔之魂 demon_soul
+            player.currency.get(900041, 0),  # 痴念之卷 foolery_pass
+            player.currency.get(906058, 0)  # SP皮肤券
         ]),
         [map_hero(id, i) for id, i in player.heroes.items()
          if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
