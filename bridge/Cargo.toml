@@ -8,8 +8,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# default = []
-default = ["fg"]
+default = []
+# default = ["fg"]
 steam = []
 fg = []
 dmm = ["steam"]
