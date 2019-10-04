@@ -1,6 +1,6 @@
 [package]
 name = "bridge"
-version = "0.9.3"
+version = "0.99.0"
 authors = ["Flux Xu <fluxxu@gmail.com>"]
 edition = "2018"
 
@@ -8,8 +8,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = []
-# default = ["guild", "fg"]
+# default = []
+default = ["fg"]
 steam = []
 fg = []
 dmm = ["steam"]
