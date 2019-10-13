@@ -43,16 +43,17 @@ fn handle_result(out_path: &Path, version_str: &str, res: &PullResult) -> Result
     let ts = Local::now().format("%Y%m%d%H%M%S");
 
     let value: serde_json::Value = serde_json::from_str(&res.get_data_json().ok_or_else(|| "No data")?)?;
-    let (short_id, server_id): (i64, i64) = value
+    let (short_id, server_id, name): (i64, i64, String) = value
       .as_object()
       .and_then(|obj| {
         obj.get("player").and_then(|p| {
           p.as_object()
-            .and_then(|p| Some((p.get("id")?.as_i64()?, p.get("server_id")?.as_i64()?)))
+            .and_then(|p| Some((p.get("id")?.as_i64()?, p.get("server_id")?.as_i64()?, p.get("name")?.as_str().map(ToString::to_string)?)))
         })
       })
-      .unwrap_or((0, 0));
-    let path = format!("yyx_snapshot_{}_{}_{}.json", ts, server_id, short_id);
+      .unwrap_or((0, 0, "".to_string()));
+    let name: String = name.chars().filter(|c| c.is_alphanumeric()).collect();
+    let path = format!("yyx_{}_{}_{}_{}.json", name, server_id, short_id, ts);
     write(
       out_path.join(&path),
       serde_json::to_string_pretty(&json!({
