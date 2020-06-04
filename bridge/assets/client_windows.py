@@ -22,19 +22,12 @@ try:
 
     def map_equip(id, equip):
         initData = DATA_EQUIP_INIT.data.get(equip.equipId)
-        randData = DATA_EQUIP_ATTR.data.get(initData['rand_id'])
         attrs = []
-        random_attrs = []
+        tmpList = equip.getRandAttrDict()
+        for key, value in tmpList.items():
+            attrs.append([equip_attr_type_map[key], value])
         base_attr = [equip_attr_type_map[equip.baseAttrName],
                      equip.strengthenedBaseAttrValue]
-        for item in randData['attr_list']:
-            attrname = item[0]
-            attrvalue = item[1]
-            if attrname in equip.randAttrRates:
-                attrs.append([equip_attr_type_map[attrname],
-                              attrvalue * equip.randAttrRates[attrname]])
-                random_attrs.append(
-                    [equip_attr_type_map[attrname], attrvalue * equip.randAttrRates[attrname]])
 
         single_attrs = DATA_EQUIP_RANDOM_ATTR.data.get(
             equip.single_attr, {}).get('attrs') if equip.single_attr else []
@@ -61,9 +54,8 @@ try:
             # 'rand_attr_rates': equip.randAttrRates,
             attrs,
             base_attr,
-            random_attrs,
-            [[equip_attr_type_map[attrname], rate]
-                for (attrname, rate) in equip.randAttrRates.items()],
+            attrs,
+            [],
             single_attrs
         ]
 

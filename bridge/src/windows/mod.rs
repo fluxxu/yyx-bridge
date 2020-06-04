@@ -40,7 +40,9 @@ fn is_game_process() -> bool {
   debug!("app path = {:?}", app_path);
   if let Some(name) = app_path.file_name().and_then(|v| v.to_str()) {
     let name_low = name.to_lowercase();
-    return name_low == secret_string!("onmyoji.exe") || name_low == secret_string!("client.exe");
+    return name_low == secret_string!("onmyoji_future.exe")
+      || name_low == secret_string!("onmyoji.exe")
+      || name_low == secret_string!("client.exe");
   } else {
     return false;
   }

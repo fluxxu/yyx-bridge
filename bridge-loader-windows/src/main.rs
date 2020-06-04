@@ -132,11 +132,14 @@ fn get_symbols<'a>(lib: &'a Library) -> LibInterface<'a> {
 }
 
 #[cfg(not(feature = "guild"))]
-fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> {
+fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<dyn Error>> {
+  use std::collections::HashSet;
   use std::fs::write;
 
+  let forbidden_chars: HashSet<char> = r#"<>:"/\|?*"#.chars().collect();
+
   if res.is_ok {
-    use serde_json::{self, json};
+    use serde_json::json;
     let now = Local::now();
     let ts = Local::now().format("%Y%m%d%H%M%S");
 
@@ -146,12 +149,20 @@ fn handle_result(version_str: &str, res: &PullResult) -> Result<(), Box<Error>> 
       .as_object()
       .and_then(|obj| {
         obj.get("player").and_then(|p| {
-          p.as_object()
-            .and_then(|p| Some((p.get("id")?.as_i64()?, p.get("server_id")?.as_i64()?, p.get("name")?.as_str().map(ToString::to_string)?)))
+          p.as_object().and_then(|p| {
+            Some((
+              p.get("id")?.as_i64()?,
+              p.get("server_id")?.as_i64()?,
+              p.get("name")?.as_str().map(ToString::to_string)?,
+            ))
+          })
         })
       })
       .unwrap_or((0, 0, "".to_string()));
-    let name: String = name.chars().filter(|c| c.is_alphanumeric()).collect();
+    let name: String = name
+      .chars()
+      .filter(|c| c.is_alphanumeric() && !forbidden_chars.contains(c))
+      .collect();
     write(
       format!("yyx_{}_{}_{}_{}.json", name, server_id, short_id, ts),
       serde_json::to_string_pretty(&json!({
