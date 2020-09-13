@@ -1,7 +1,7 @@
 use std::ffi::c_void;
 use std::os::raw::c_char;
 
-pub const YYS_WINDOW_CLASS: &str = "Win32Window0";
+pub const YYS_WINDOW_CLASS: &str = "Win32Window";
 pub const YYS_WINDOW_TITLE: &[u8] = &[
   210, 245, 209, 244, 202, 166, 45, 205, 248, 210, 215, 211, 206, 207, 183,
 ];

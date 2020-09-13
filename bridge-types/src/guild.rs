@@ -46,3 +46,13 @@ pub struct GuildMember {
   pub task_finished_day: i64,
   pub task_finished_week: i64,
 }
+
+#[test]
+fn test_deserialize() {
+  use bridge_value::ParseClientValue;
+  use serde_json::{Value, from_slice};
+
+  let value: Value = from_slice(include_bytes!("../test_data/guild.json") as &[u8]).unwrap();
+  let g = Guild::parse_client_value(&value).unwrap();
+  dbg!(&g);
+}

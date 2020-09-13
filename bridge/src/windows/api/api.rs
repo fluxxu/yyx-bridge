@@ -7,8 +7,8 @@ use std::ffi::CString;
 use std::mem::transmute;
 use std::os::raw::c_char;
 use std::sync::Mutex;
+use std::ptr;
 
-use crate::windows::byte_pattern;
 use crate::windows::process;
 use crate::windows::result::*;
 
@@ -27,46 +27,35 @@ struct State {
 }
 
 #[inline(always)]
-fn resolve_state(code_section: &process::Section) -> Option<State> {
-  let P_PYGILSTATE_ENSURE = secret_string!("56 57 FF 35 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8B F0 83 C4 04");
-  let p_PyGILState_Ensure = {
-    let pattern = byte_pattern::PatternFinder::new(&P_PYGILSTATE_ENSURE);
-    pattern.find_pattern(code_section.base, code_section.size)?
-  };
-
-  let P_PYGILSTATE_RELEASE = secret_string!("55 8B EC 56 FF 35 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8B F0");
-  let p_PyGILState_Release = {
-    let pattern = byte_pattern::PatternFinder::new(&P_PYGILSTATE_RELEASE);
-    pattern.find_pattern(code_section.base, code_section.size)?
-  };
-
-  let P_PYRUN_SIMPLESTRINGFLAGS =
-    secret_string!("55 8B EC 68 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 C4 04 85 C0 74 26");
-  let p_PyRun_SimpleStringFlags = {
-    let pattern = byte_pattern::PatternFinder::new(&P_PYRUN_SIMPLESTRINGFLAGS);
-    pattern.find_pattern(code_section.base, code_section.size)?
-  };
-
-  unsafe {
-    Some(State {
-      p_PyGILState_Ensure: transmute(p_PyGILState_Ensure),
-      p_PyGILState_Release: transmute(p_PyGILState_Release),
-      p_PyRun_SimpleStringFlags: transmute(p_PyRun_SimpleStringFlags),
-    })
-  }
-}
-
-#[inline(always)]
 pub fn init() -> BridgeResult<()> {
-  let version = process::get_version_string();
+  use winapi::um::libloaderapi::*;
+  unsafe {
+    let m = GetModuleHandleA(ptr::null_mut());
+    if m == ptr::null_mut() {
+      return Err(BridgeError::Internal);
+    }
 
-  debug!("client version = {}", version);
+    let procname = CString::new(secret_string!("PyGILState_Ensure")).unwrap();
+    let ensure = GetProcAddress(m, procname.as_ptr());
 
-  let code_section = process::get_code_section().ok_or_else(|| BridgeError::GetBase)?;
-  let value =
-    resolve_state(&code_section).ok_or_else(|| BridgeError::VersionNotSupported(version))?;
-  let mut state = STATE.lock().unwrap();
-  *state = Some(value);
+    let procname = CString::new(secret_string!("PyGILState_Release")).unwrap();
+    let release = GetProcAddress(m, procname.as_ptr());
+
+    let procname = CString::new(secret_string!("PyRun_SimpleStringFlags")).unwrap();
+    let run = GetProcAddress(m, procname.as_ptr());
+
+    if ensure == ptr::null_mut() || release == ptr::null_mut() || run == ptr::null_mut() {
+      return Err(BridgeError::Internal);
+    }
+
+    let mut state = STATE.lock().unwrap();
+    *state = Some(State {
+      p_PyGILState_Ensure: transmute(ensure),
+      p_PyGILState_Release: transmute(release),
+      p_PyRun_SimpleStringFlags: transmute(run),
+    });
+  }
+
   Ok(())
 }
 

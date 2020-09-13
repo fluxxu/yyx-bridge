@@ -3,29 +3,6 @@
 #include <tlhelp32.h>
 #include <Psapi.h>
 
-struct Section
-{
-  void *base;
-  DWORD size;
-};
-
-extern "C" bool get_code_section_impl(Section *out)
-{
-  HMODULE hModule = GetModuleHandle(NULL);
-
-  PIMAGE_DOS_HEADER DosHeader = (PIMAGE_DOS_HEADER)hModule;
-  PIMAGE_NT_HEADERS PeHeader = (PIMAGE_NT_HEADERS)((DWORD)DosHeader + DosHeader->e_lfanew);
-
-  DWORD CodeAddress = (DWORD)DosHeader + PeHeader->OptionalHeader.BaseOfCode;
-  DWORD CodeLength = PeHeader->OptionalHeader.SizeOfCode;
-
-  if (!CodeAddress || !CodeLength)
-    return false;
-  out->base = (void *)CodeAddress;
-  out->size = CodeLength;
-  return true;
-}
-
 static const int kMaxVersionStringSize = 64;
 extern "C" bool get_version(char dst[kMaxVersionStringSize])
 {

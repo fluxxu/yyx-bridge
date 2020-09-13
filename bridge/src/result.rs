@@ -3,6 +3,7 @@ use std::ffi::CString;
 use std::os::raw::c_char;
 use std::ptr;
 
+#[repr(C)]
 pub struct PullResult {
   pub is_ok: bool,
   pub error_message: *mut c_char,

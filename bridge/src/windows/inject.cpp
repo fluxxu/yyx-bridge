@@ -64,11 +64,11 @@ __forceinline BOOL RemoteLoadLibrary(HANDLE hProcess, LPWSTR lpLibPath)
 
     printf("LoadLibraryW addr = %x\n", f_addr);
 
-    auto f_offset = (uint32_t)f_addr - (uint32_t)hKernel32;
+    auto f_offset = (uint64_t)f_addr - (uint64_t)hKernel32;
 
     printf("LoadLibraryW offset = %x\n", f_offset);
 
-    auto f_remote_addr = (uint32_t)remote_base + f_offset;
+    auto f_remote_addr = (uint64_t)remote_base + f_offset;
 
     printf("f_remote_addr = %x\n", f_remote_addr);
 

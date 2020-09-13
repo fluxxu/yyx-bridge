@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="523f491b-fe02-4e66-8b3a-934b58c0f13d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/build-guild-debug.cmd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.cargo/config" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge-loader-windows/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge-loader-windows/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge-types/src/guild.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge-types/src/guild.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/result.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/result.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/api/api.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/api/api.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/byte_pattern.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/byte_pattern.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/inject.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/inject.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/process.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/process.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/process.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/process.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bridge/src/windows/window.rs" beforeDir="false" afterPath="$PROJECT_DIR$/bridge/src/windows/window.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build-all.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/build-all.cmd" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="h81n0g1x" />
+  </component>
+  <component name="ProjectId" id="1hOLF4akH5yXCqV51GWDAIWSZGj" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Data\Projects\yyx-bridge" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="cargo check --all" />
+      <command value="format" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Cargo Command.Test guild::test_deserialize">
+    <configuration name="Test guild::test_deserialize" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package bridge-types --lib guild::test_deserialize -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="check --all" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo Command.Test guild::test_deserialize" />
+        <item itemvalue="Cargo Command.check" />
+        <item itemvalue="Cargo Command.check" />
+        <item itemvalue="Cargo Command.check" />
+        <item itemvalue="Cargo Command.check" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="523f491b-fe02-4e66-8b3a-934b58c0f13d" name="Default Changelist" comment="" />
+      <created>1599877084663</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1599877084663</updated>
+      <workItem from="1599877085867" duration="11600000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="828" y="344" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1599877328230">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state x="828" y="344" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599877328230" />
+    <state width="2151" height="333" key="GridCell.Tab.0.bottom" timestamp="1599885393789">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state width="2151" height="333" key="GridCell.Tab.0.bottom/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599885393789" />
+    <state width="2151" height="333" key="GridCell.Tab.0.center" timestamp="1599885393789">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state width="2151" height="333" key="GridCell.Tab.0.center/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599885393789" />
+    <state width="2151" height="333" key="GridCell.Tab.0.left" timestamp="1599885393789">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state width="2151" height="333" key="GridCell.Tab.0.left/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599885393789" />
+    <state width="2151" height="333" key="GridCell.Tab.0.right" timestamp="1599885393789">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state width="2151" height="333" key="GridCell.Tab.0.right/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599885393789" />
+    <state x="809" y="318" width="576" height="558" key="find.popup" timestamp="1599884805457">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state x="809" y="318" width="576" height="558" key="find.popup/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599884805457" />
+    <state x="754" y="279" width="672" height="677" key="run.anything.popup" timestamp="1599885758320">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state x="754" y="279" width="672" height="677" key="run.anything.popup/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599885758320" />
+    <state x="760" y="264" width="672" height="678" key="search.everywhere.popup" timestamp="1599879511476">
+      <screen x="0" y="0" width="2194" height="1194" />
+    </state>
+    <state x="760" y="264" width="672" height="678" key="search.everywhere.popup/3840.0.2194.1194/7680.0.1920.1040/0.0.2194.1194@0.0.2194.1194" timestamp="1599879511476" />
+  </component>
+</project>

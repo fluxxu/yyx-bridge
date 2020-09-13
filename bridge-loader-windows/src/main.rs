@@ -15,6 +15,7 @@ struct LibInterface<'a> {
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct PullResult {
   pub is_ok: bool,
   pub error_message: *mut c_char,

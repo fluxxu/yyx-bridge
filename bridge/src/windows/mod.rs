@@ -1,6 +1,5 @@
 mod result;
 
-mod byte_pattern;
 mod inject;
 mod process;
 mod ptr;
@@ -42,7 +41,8 @@ fn is_game_process() -> bool {
     let name_low = name.to_lowercase();
     return name_low == secret_string!("onmyoji_future.exe")
       || name_low == secret_string!("onmyoji.exe")
-      || name_low == secret_string!("client.exe");
+      || name_low == secret_string!("client.exe")
+      || name_low == secret_string!("aclient.exe");
   } else {
     return false;
   }
@@ -59,15 +59,15 @@ pub fn run(hinst_dll: HINSTANCE) {
   use std::fs::File;
   let env = init_env(hinst_dll);
 
-  CombinedLogger::init(vec![WriteLogger::new(
-    LevelFilter::Debug,
-    Config::default(),
-    File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
-  )])
-  .ok();
-
   if is_game_process() {
     pull::run_client();
+  } else {
+    CombinedLogger::init(vec![WriteLogger::new(
+      LevelFilter::Debug,
+      Config::default(),
+      File::create(env.self_path.with_file_name("bridge.log")).unwrap(),
+    )])
+      .ok();
   }
 }
 
