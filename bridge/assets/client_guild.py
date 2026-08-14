@@ -1,6 +1,24 @@
 import json
-import Globals
-import module.guild.GuildLogic as GuildLogic
+import traceback
+
+PIPE = r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b'
+
+def _send_error(msg):
+    try:
+        f = open(PIPE, 'wb+', buffering=0)
+        f.write(json.dumps({
+            'error': str(msg)
+        }, ensure_ascii=False).encode('utf8'))
+        f.close()
+    except Exception:
+        pass
+
+try:
+    import Globals
+    import module.guild.GuildLogic as GuildLogic
+except Exception as e:
+    _send_error('import failed: %s\n%s' % (e, traceback.format_exc()))
+    raise
 
 
 def get_task_records():
@@ -75,7 +93,7 @@ def map_guild_member(m):
     ]
 
 
-f = open(r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b', 'wb+', buffering=0)
+f = open(PIPE, 'wb+', buffering=0)
 try:
     if GuildLogic.myGuildDetail == None:
         raise Exception('Guild data not available.')
@@ -88,6 +106,6 @@ try:
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
 except Exception as e:
     f.write(json.dumps({
-        'error': str(e)
+        'error': '%s\n%s' % (e, traceback.format_exc())
     }, ensure_ascii=False).encode('utf8'))
 f.close()
