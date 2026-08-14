@@ -1,10 +1,28 @@
 import json
-import Globals
-from DynamicConfigData import DATA_HERO, DATA_EQUIP_ATTR, DATA_EQUIP_INIT, DATA_EQUIP_RANDOM_ATTR, DATA_STORY
-import com.utils.helpers as helpers
-import com.const as CONST
+import traceback
 
-f = open(r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b', 'wb+', buffering=0)
+PIPE = r'\\.\pipe\b62340b3-9f87-4f38-b844-7b8d1598b64b'
+
+def _send_error(msg):
+    try:
+        f = open(PIPE, 'wb+', buffering=0)
+        f.write(json.dumps({
+            'error': str(msg)
+        }, ensure_ascii=False).encode('utf8'))
+        f.close()
+    except Exception:
+        pass
+
+try:
+    import Globals
+    from DynamicConfigData import DATA_HERO, DATA_EQUIP_ATTR, DATA_EQUIP_INIT, DATA_EQUIP_RANDOM_ATTR, DATA_STORY
+    import com.utils.helpers as helpers
+    import com.const as CONST
+except Exception as e:
+    _send_error('import failed: %s\n%s' % (e, traceback.format_exc()))
+    raise
+
+f = open(PIPE, 'wb+', buffering=0)
 try:
     player = Globals.player1
     if player == None:
@@ -148,7 +166,7 @@ try:
 
     def get_story_tasks():
         items = []
-        for id, _ in DATA_HERO.data.iteritems():
+        for id, _ in DATA_HERO.data.items():
             if id < 200 or id > 600:
                 continue
             storyData = DATA_STORY.data.get(id)
@@ -163,7 +181,7 @@ try:
 
     data = [
         [player.short_id, player.server_id, player.name, player.level],
-        map(lambda v: int(v), [
+        [int(v) for v in [
             player.currency.get(CONST.CurrencyType.COIN, 0),  # COIN
             player.currency.get(CONST.CurrencyType.GOLD, 0),  # GOUYU
             player.currency.get(
@@ -186,7 +204,7 @@ try:
             player.currency.get(900218, 0),  # 逢魔之魂 demon_soul
             player.currency.get(900041, 0),  # 痴念之卷 foolery_pass
             player.currency.get(906058, 0)  # SP皮肤券
-        ]),
+        ]],
         [map_hero(id, i) for id, i in player.heroes.items()
          if DATA_HERO.data.get(i.heroId).get('type') in heroTypeList],
         [map_equip(id, e) for id, e in player.inventory.items()],
@@ -200,6 +218,6 @@ try:
     f.write(json.dumps(data, ensure_ascii=False).encode('utf8'))
 except Exception as e:
     f.write(json.dumps({
-        'error': str(e)
+        'error': '%s\n%s' % (e, traceback.format_exc())
     }, ensure_ascii=False).encode('utf8'))
 f.close()

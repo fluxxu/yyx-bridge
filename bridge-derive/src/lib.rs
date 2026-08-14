@@ -1,4 +1,3 @@
-#![feature(proc_macro_span)]
 #![recursion_limit = "128"]
 
 extern crate proc_macro;

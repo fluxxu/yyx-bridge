@@ -70,7 +70,11 @@ pub fn run(code: &str) -> BridgeResult<i32> {
       let rv = (state.p_PyRun_SimpleStringFlags)(code_cstr.as_ptr(), 0);
       (state.p_PyGILState_Release)(gil);
       debug!("run result = {}", rv);
-      Ok(rv)
+      if rv != 0 {
+        Err(BridgeError::Internal)
+      } else {
+        Ok(rv)
+      }
     }
   } else {
     Err(BridgeError::Internal.into())
